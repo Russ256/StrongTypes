@@ -10,9 +10,10 @@ public class SourceGenerator
                 // Auto-generated code 
                 namespace {{typeToGenerate.Namespace}};
 
+                using System.Diagnostics.CodeAnalysis;
                 using System.Text.Json.Serialization;
                 using System.Text.Json;
-                                                
+                
                 [JsonConverter(typeof(JsonConverter))]
                 public readonly partial struct {{typeToGenerate.Name}} : IComparable<{{typeToGenerate.Name}}>
                 {
@@ -32,6 +33,18 @@ public class SourceGenerator
                     public override string ToString() => _value.ToString();
 
                     public int CompareTo({{typeToGenerate.Name}} other) => _value.CompareTo(other._value);
+
+                    public override bool Equals([NotNullWhen(true)] object? o)
+                    {
+                        if (o is {{typeToGenerate.Name}} other)
+                            return _value == other._value;
+
+                        return false;
+                    }
+
+                    public override int GetHashCode() => _value.GetHashCode();
+                    public static bool operator == ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b) => a._value == b._value;
+                    public static bool operator != ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b) => a._value != b._value;
 
                     public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
                     {

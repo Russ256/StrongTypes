@@ -133,9 +133,39 @@ public class GuidTests
         // Assert
         result.Should().BePositive();
     }
+
+    [TestMethod]
+    public void Equals_When_Same_Returns_true()
+    {
+        // Arrange
+        Guid guid = Guid.NewGuid();
+        TestId id1 = new(guid);
+        TestId id2 = new(guid);
+
+        // Act
+        bool result = id1 == id2;
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void Equals_When_Not_Same_Returns_False()
+    {
+        // Arrange
+        TestId id1 = TestId.New();
+        TestId id2 = TestId.New();
+
+        // Act
+        bool result = id1 == id2;
+
+        // Assert
+        result.Should().BeFalse();
+    }
 }
 
 [Guid]
-public partial struct TestId
+public partial struct TestId 
 {
+  
 }
