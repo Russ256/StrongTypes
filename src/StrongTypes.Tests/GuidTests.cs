@@ -41,6 +41,19 @@ public class GuidTests
     }
 
     [TestMethod]
+    public void String_Constructor_Should_Match_Guid()
+    {
+        // Arrange
+        Guid guid = Guid.NewGuid();
+
+        // Act 
+        TestId id = new(guid.ToString());
+
+        // Assert
+        id.ToString().Should().Be(guid.ToString());
+    }
+
+    [TestMethod]
     public void New_Should_Not_Be_Empty()
     {
         // Act

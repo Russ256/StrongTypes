@@ -7,7 +7,7 @@ public class SourceGenerator
     public static string Generate(TypeToGenerate typeToGenerate)
     {
         string start = $$"""
-                // Auto-generated code
+                // Auto-generated code 
                 namespace {{typeToGenerate.Namespace}};
 
                 using System.Text.Json.Serialization;
@@ -19,7 +19,13 @@ public class SourceGenerator
                     private readonly {{typeToGenerate.BaseType}} _value;
 
                     public {{typeToGenerate.Name}}({{typeToGenerate.BaseType}} value) => _value = value;
-
+                    public {{typeToGenerate.Name}}(string value)
+                    {
+                        if (!Guid.TryParse(value, out Guid guid))
+                            throw new ArgumentException($"{value} is not a valid {{typeToGenerate.Name}}");
+                        _value = guid;
+                    }
+                
                     public static {{typeToGenerate.Name}} New() => new {{typeToGenerate.Name}}(Guid.NewGuid());
                     public static {{typeToGenerate.Name}} Empty() => new {{typeToGenerate.Name}}(Guid.Empty);
 
