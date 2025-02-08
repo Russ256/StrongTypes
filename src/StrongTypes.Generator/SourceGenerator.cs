@@ -15,7 +15,7 @@ public class SourceGenerator
                 using System.Text.Json;
                 
                 [JsonConverter(typeof(JsonConverter))]
-                public readonly partial struct {{typeToGenerate.Name}} : IComparable<{{typeToGenerate.Name}}>
+                public readonly partial struct {{typeToGenerate.Name}} : IComparable<{{typeToGenerate.Name}}>, IParsable<{{typeToGenerate.Name}}>
                 {
                     private readonly {{typeToGenerate.BaseType}} _value;
 
@@ -27,6 +27,37 @@ public class SourceGenerator
                         _value = guid;
                     }
                 
+                    public static {{typeToGenerate.Name}} Parse(string s) => Parse(s, provider: null);
+                    public static {{typeToGenerate.Name}} Parse(string s, IFormatProvider? provider)
+                    {
+                        if (TryParse(s, provider, out {{typeToGenerate.Name}} result))
+                        {
+                            return result;
+                        }
+
+                        throw new FormatException($"'{s}' is not a valid {{typeToGenerate.Name}}.");
+                    }
+
+                    public static bool TryParse(string? s, out {{typeToGenerate.Name}} result) => TryParse(s, provider: null, out result);
+                    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out {{typeToGenerate.Name}} result)
+                    {
+                        result = default;
+
+                        if (string.IsNullOrEmpty(s))
+                        {
+                            return false;
+                        }
+
+                        if (Guid.TryParse(s, out Guid guid))
+                        {
+                            result = new {{typeToGenerate.Name}}(guid);
+                            return true;
+                        }
+
+                        return false;
+                    }
+
+
                     public static {{typeToGenerate.Name}} New() => new {{typeToGenerate.Name}}(Guid.NewGuid());
                     public static {{typeToGenerate.Name}} Empty() => new {{typeToGenerate.Name}}(Guid.Empty);
 

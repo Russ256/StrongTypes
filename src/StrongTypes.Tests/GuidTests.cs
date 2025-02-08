@@ -2,6 +2,7 @@ namespace StrongTypes.Tests;
 
 using FluentAssertions;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 [TestClass]
@@ -47,7 +48,7 @@ public class GuidTests
         // Arrange
         Guid guid = Guid.NewGuid();
 
-        // Act 
+        // Act
         TestId id = new(guid.ToString());
 
         // Assert
@@ -135,7 +136,7 @@ public class GuidTests
     }
 
     [TestMethod]
-    public void Equals_When_Same_Returns_true()
+    public void Equals_Operator_When_Same_Returns_true()
     {
         // Arrange
         Guid guid = Guid.NewGuid();
@@ -150,7 +151,7 @@ public class GuidTests
     }
 
     [TestMethod]
-    public void Equals_When_Not_Same_Returns_False()
+    public void Equals_Operator_When_Not_Same_Returns_False()
     {
         // Arrange
         TestId id1 = TestId.New();
@@ -162,10 +163,92 @@ public class GuidTests
         // Assert
         result.Should().BeFalse();
     }
+
+    [TestMethod]
+    public void NotEquals_Operator_When_Same_Returns_False()
+    {
+        // Arrange
+        Guid guid = Guid.NewGuid();
+        TestId id1 = new(guid);
+        TestId id2 = new(guid);
+
+        // Act
+        bool result = id1 != id2;
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void NotEquals_Operator_When_Not_Same_Returns_True()
+    {
+        // Arrange
+        TestId id1 = TestId.New();
+        TestId id2 = TestId.New();
+
+        // Act
+        bool result = id1 != id2;
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void TryParse_When_Valid_Guid_Returns_True_And_New_Type()
+    {
+        // Arrange
+        string value = Guid.NewGuid().ToString();
+
+        // Act
+        bool result = TestId.TryParse(value, out TestId id);
+
+        // Assert
+        result.Should().BeTrue();
+        id.ToString().Should().Be(value);
+    }
+
+    [TestMethod]
+    public void Parse_When_Valid_Guid_Returns_True_And_New_Type()
+    {
+        // Arrange
+        string value = Guid.NewGuid().ToString();
+
+        // Act
+        TestId result = TestId.Parse(value);
+
+        // Assert
+        result.ToString().Should().Be(value);
+    }
+
+    [TestMethod]
+    public void Parse_When_Invalid_Guid_Throws_Exception()
+    {
+        // Arrange
+        string value = "test";
+
+        // Act
+        Action action = () => TestId.Parse(value);
+
+        // Assert
+        action.Should().Throw<FormatException>().WithMessage($"'{value}' is not a valid TestId.");
+    }
+
+    [TestMethod]
+    public void TryParse_When_Invalid_Guid_Returns_False_And_Default_Object()
+    {
+        // Arrange
+        string value = "test";
+
+        // Act
+        bool result = TestId.TryParse(value, out TestId id);
+
+        // Assert
+        result.Should().BeFalse();
+        id.Should().Be(TestId.Empty());
+    }
 }
 
 [Guid]
-public partial struct TestId 
+public partial struct TestId
 {
-  
 }
