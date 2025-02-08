@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "StrongTypes.Generator": {
+      "commandName": "Project"
+    },
+    "Generator": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\StrongTypes.Test\\StrongTypes.Test.csproj"
+    }
+  }
+}
