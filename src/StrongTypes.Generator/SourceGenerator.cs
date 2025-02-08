@@ -14,7 +14,7 @@ public class SourceGenerator
                 using System.Text.Json;
                                                 
                 [JsonConverter(typeof(JsonConverter))]
-                public readonly partial struct {{typeToGenerate.Name}}
+                public readonly partial struct {{typeToGenerate.Name}} : IComparable<{{typeToGenerate.Name}}>
                 {
                     private readonly {{typeToGenerate.BaseType}} _value;
 
@@ -30,6 +30,8 @@ public class SourceGenerator
                     public static {{typeToGenerate.Name}} Empty() => new {{typeToGenerate.Name}}(Guid.Empty);
 
                     public override string ToString() => _value.ToString();
+
+                    public int CompareTo({{typeToGenerate.Name}} other) => _value.CompareTo(other._value);
 
                     public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
                     {

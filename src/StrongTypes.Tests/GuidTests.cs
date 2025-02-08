@@ -90,6 +90,49 @@ public class GuidTests
         // Assert
         result.ToString().Should().Be(guid.ToString());
     }
+
+    [TestMethod]
+    public void CompareTo_When_Same_Guid_Returns_0()
+    {
+        // Arrange
+        Guid guid = Guid.NewGuid();
+        TestId id1 = new(guid);
+        TestId id2 = new(guid);
+
+        // Act
+        int result = id1.CompareTo(id2);
+
+        // Assert
+        result.Should().Be(0);
+    }
+
+    [TestMethod]
+    public void CompareTo_When_LessThan_Returns_Negative()
+    {
+        // Arrange
+        TestId id1 = new("3289446b-e0d8-485e-a5a6-0e2a2b986dee");
+        TestId id2 = new("3289446b-e0d8-485e-a5a6-0e2a2b986def");
+
+        // Act
+        int result = id1.CompareTo(id2);
+
+        // Assert
+        result.Should().BeNegative();
+    }
+
+    [TestMethod]
+    public void CompareTo_When_MoreThan_Returns_Positive()
+    {
+        // Arrange
+        TestId id1 = new("3289446b-e0d8-485e-a5a6-0e2a2b986dee");
+        TestId id2 = new("3289446b-e0d8-485e-a5a6-0e2a2b986dea");
+
+        // Act
+        int result = id1.CompareTo(id2);
+
+        // Assert
+        result.Should().BePositive();
+    }
 }
 
 [Guid]
