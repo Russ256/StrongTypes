@@ -2,6 +2,7 @@ namespace StrongTypes.Tests;
 
 using FluentAssertions;
 using System;
+using System.Text.Json;
 
 [TestClass]
 public class GuidTests
@@ -61,6 +62,33 @@ public class GuidTests
 
         // Assert
         id.Should().NotBeSameAs(TestId.Empty());
+    }
+
+    [TestMethod]
+    public void Json_Serialize_Should_Be_Guid()
+    {
+        // Arrange
+        TestId id = TestId.New();
+
+        // Act
+        string result = JsonSerializer.Serialize(id);
+
+        // Assert
+        result.Should().Be($"\"{id}\"");
+    }
+
+    [TestMethod]
+    public void Json_Deserialize_Guid_Should_Succeed()
+    {
+        // Arrange
+        Guid guid = Guid.NewGuid();
+        string json = $"\"{guid}\"";
+
+        // Act
+        TestId result = JsonSerializer.Deserialize<TestId>(json);
+
+        // Assert
+        result.ToString().Should().Be(guid.ToString());
     }
 }
 

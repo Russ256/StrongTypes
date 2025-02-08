@@ -13,7 +13,7 @@ public class SourceGenerator
                 using System.Text.Json.Serialization;
                 using System.Text.Json;
                                                 
-                //[JsonConverter(typeof(JsonConverter))]
+                [JsonConverter(typeof(JsonConverter))]
                 public readonly partial struct {{typeToGenerate.Name}}
                 {
                     private readonly {{typeToGenerate.BaseType}} _value;
@@ -31,14 +31,14 @@ public class SourceGenerator
 
                     public override string ToString() => _value.ToString();
 
-                    //public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
-                    //{
-                    //    public override TenantId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-                    //        => Guid.ParseExact(reader.GetString(), "D");
+                    public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
+                    {
+                        public override {{typeToGenerate.Name}} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+                            => new {{typeToGenerate.Name}}(reader.GetString());
 
-                    //    public override void Write(Utf8JsonWriter writer, TenantId value, JsonSerializerOptions options)
-                    //        => writer.WriteStringValue(({{typeToGenerate.BaseType}})value);
-                    //}
+                        public override void Write(Utf8JsonWriter writer, {{typeToGenerate.Name}} value, JsonSerializerOptions options)
+                            => writer.WriteStringValue(value._value);
+                    }
 
                 """;
 
