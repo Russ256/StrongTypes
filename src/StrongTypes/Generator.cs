@@ -15,110 +15,29 @@ public class Generator : IIncrementalGenerator
 {
     private static readonly string[] supportedTypes = ["int", "System.Guid"];
     private static SourceProductionContext sourceProductionContext;
+    internal const string Namespace = "StrongTypes";
+    internal const string AttributeName = "StrongType";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Add our attribute to the project
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
                                                         "StringTypes.Attributes.g.cs",
-                                                        SourceText.From(Attributes.Source,
-                                                        Encoding.UTF8)));
+                                                        SourceText.From(Attributes.Source, Encoding.UTF8)));
 
         // Create a simple filter for class
-        IncrementalValuesProvider<TypeDeclarationSyntax> enumDeclarations = context.SyntaxProvider
+        IncrementalValuesProvider<TypeDeclarationSyntax> typesProvider = context.SyntaxProvider
             .CreateSyntaxProvider(
-                predicate: static (s, _) => IsSyntaxTargetForGeneration(s), // select classes with attributes
-                transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx)) // sect the enum with the [MinApiGet] attribute
+                predicate: static (s, _) => IsSyntaxTargetForGeneration(s), // select only classes with attributes
+                transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx)) // select types with our attribute
             .Where(static m => m is not null)!; // filter out attributed classes that we don't care about
 
-        IncrementalValueProvider<(Compilation, ImmutableArray<TypeDeclarationSyntax>)> compilationAndClasses
-          = context.CompilationProvider.Combine(enumDeclarations.Collect());
+        IncrementalValueProvider<(Compilation, ImmutableArray<TypeDeclarationSyntax>)> valueProviders
+          = context.CompilationProvider.Combine(typesProvider.Collect());
 
-        // Generate the source using the compilation and enums
-        context.RegisterSourceOutput(compilationAndClasses,
+        context.RegisterSourceOutput(valueProviders,
             static (spc, source) => Execute(source.Item1, source.Item2, spc));
     }
-
-    private static bool IsSyntaxTargetForGeneration(SyntaxNode node)
-    {
-        return node is TypeDeclarationSyntax m && m.AttributeLists.Count > 0;
-    }
-
-    private static List<TypeToGenerate> GetTypesToGenerate(Compilation compilation, IEnumerable<TypeDeclarationSyntax> types, CancellationToken ct)
-    {
-        List<TypeToGenerate> typesToGenerate = [];
-
-        foreach (TypeDeclarationSyntax typeDeclaration in types)
-        {
-            ct.ThrowIfCancellationRequested();
-
-            // Identify the type to generate
-            AttributeSyntax attr = GetAttribute(typeDeclaration);
-            TypeOfExpressionSyntax expression = attr.ArgumentList.Arguments[0].Expression as TypeOfExpressionSyntax;
-            SemanticModel sm = compilation.GetSemanticModel(typeDeclaration.SyntaxTree);
-            ITypeSymbol typeSymbol = sm.GetTypeInfo(expression.Type).Type;
-            string type = typeSymbol.ToString();
-            if (type == "System.Int32") type = "int";            
-
-            if (!supportedTypes.Contains(type))
-            {
-                Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0001",
-                                       "Not Supported",
-                                       "Type not supported",
-                                       "Strong Types",
-                                       DiagnosticSeverity.Error, true), 
-                                       attr.ArgumentList.Arguments[0].GetLocation());
-
-                sourceProductionContext.ReportDiagnostic(diagnostic);
-                continue;
-            }
-
-            typesToGenerate.Add(new TypeToGenerate()
-            {
-                ClassStruct = typeDeclaration.Keyword.Text,
-                Name = typeDeclaration.Identifier.Text,
-                Namespace = GetNamespace(compilation, typeDeclaration),
-                BaseType = type,
-                Modifiers = typeDeclaration.Modifiers.ToString()
-            });
-        }
-
-        return typesToGenerate;
-    }
-
-    private static AttributeSyntax GetAttribute(TypeDeclarationSyntax tds)
-    {
-        foreach (AttributeListSyntax al in tds.AttributeLists)
-        {
-            foreach (AttributeSyntax attr in al.Attributes)
-            {
-                string n = attr.Name.ToString();
-                if (n == "StrongType"
-                    || n == "StrongTypeAttribute")
-                {
-                    return attr;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    public static string? GetNamespace(Compilation compilation, TypeDeclarationSyntax tds)
-    {
-        SemanticModel semanticModel = compilation.GetSemanticModel(tds.SyntaxTree);
-
-        // Get the symbol for the type declaration.
-        if (semanticModel.GetDeclaredSymbol(tds) is INamedTypeSymbol typeSymbol)
-        {
-            // Get the fully qualified namespace as a string.
-            string namespaceName = typeSymbol.ContainingNamespace.ToDisplayString();
-            return namespaceName;
-        }
-
-        return string.Empty;
-    }
-
 
     private static void Execute(Compilation compilation, ImmutableArray<TypeDeclarationSyntax> typeDeclarations, SourceProductionContext context)
     {
@@ -133,9 +52,9 @@ public class Generator : IIncrementalGenerator
         }
     }
 
-    private static TypeDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
+    private static TypeDeclarationSyntax GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
     {
-        // we know the node is a EnumDeclarationSyntax thanks to IsSyntaxTargetForGeneration
+        // we know the node is a TypeDeclarationSyntax thanks to IsSyntaxTargetForGeneration
         TypeDeclarationSyntax typeDeclarationSyntax = (TypeDeclarationSyntax)context.Node;
 
         // loop through all the attributes on the method
@@ -159,5 +78,53 @@ public class Generator : IIncrementalGenerator
 
         // Nothing found
         return null;
+    }
+
+    private static List<TypeToGenerate> GetTypesToGenerate(Compilation compilation, IEnumerable<TypeDeclarationSyntax> types, CancellationToken ct)
+    {
+        List<TypeToGenerate> typesToGenerate = [];
+
+        foreach (TypeDeclarationSyntax typeDeclaration in types)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            // Identify the type to generate
+            AttributeSyntax attr = compilation.GetAttribute(typeDeclaration, AttributeName);
+            TypeOfExpressionSyntax expression = attr.ArgumentList.Arguments[0].Expression as TypeOfExpressionSyntax;
+            SemanticModel sm = compilation.GetSemanticModel(typeDeclaration.SyntaxTree);
+            ITypeSymbol typeSymbol = sm.GetTypeInfo(expression.Type).Type;
+            string type = typeSymbol.ToString();
+            if (type == "System.Int32") type = "int";
+
+            if (!supportedTypes.Contains(type))
+            {
+                Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0001",
+                                       "Not Supported",
+                                       "Type not supported",
+                                       "Strong Types",
+                                       DiagnosticSeverity.Error, true),
+                                       attr.ArgumentList.Arguments[0].GetLocation());
+
+                sourceProductionContext.ReportDiagnostic(diagnostic);
+                continue;
+            }
+
+            typesToGenerate.Add(new TypeToGenerate()
+            {
+                ClassStruct = typeDeclaration.Keyword.Text,
+                Name = typeDeclaration.Identifier.Text,
+                Namespace = compilation.Namespace(typeDeclaration),
+                BaseType = type,
+                Modifiers = typeDeclaration.Modifiers.ToString()
+            });
+        }
+
+        return typesToGenerate;
+    }
+
+    private static bool IsSyntaxTargetForGeneration(SyntaxNode node)
+    {
+        return node is ClassDeclarationSyntax m && m.AttributeLists.Count > 0
+            || node is StructDeclarationSyntax s && s.AttributeLists.Count > 0;
     }
 }

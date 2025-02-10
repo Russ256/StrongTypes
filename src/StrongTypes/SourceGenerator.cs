@@ -19,6 +19,8 @@ public class SourceGenerator
     {
         string code = $$"""
                         // Auto-generated code 
+                        #nullable enable
+                        
                         namespace {{typeToGenerate.Namespace}};
                         
                         using System.Diagnostics.CodeAnalysis;
@@ -103,6 +105,8 @@ public class SourceGenerator
     {
         string code = $$"""
                 // Auto-generated code 
+                #nullable enable
+                
                 namespace {{typeToGenerate.Namespace}};
 
                 using System.Diagnostics.CodeAnalysis;
@@ -117,6 +121,8 @@ public class SourceGenerator
                     public {{typeToGenerate.Name}}({{typeToGenerate.BaseType}} value) => _value = value;
                     public {{typeToGenerate.Name}}(string value)
                     {
+                        ArgumentNullException.ThrowIfNull(value, nameof(value));
+
                         if (!Guid.TryParse(value, out Guid guid))
                             throw new ArgumentException($"{value} is not a valid {{typeToGenerate.Name}}");
                         _value = guid;
@@ -175,7 +181,7 @@ public class SourceGenerator
                     public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
                     {
                         public override {{typeToGenerate.Name}} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-                            => new {{typeToGenerate.Name}}(reader.GetString());
+                            => new {{typeToGenerate.Name}}(reader.GetString()!);
 
                         public override void Write(Utf8JsonWriter writer, {{typeToGenerate.Name}} value, JsonSerializerOptions options)
                             => writer.WriteStringValue(value._value);

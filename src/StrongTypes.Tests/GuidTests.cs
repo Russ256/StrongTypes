@@ -180,6 +180,16 @@ public class GuidTests
     }
 
     [TestMethod]
+    public void NullGuid_Constructor_Should_Match_Guid()
+    {
+        // Act
+        Action action = () => _ = new TestGuid(null!);
+
+        // Assert
+        action.Should().Throw<ArgumentNullException>().WithMessage("Value cannot be null. (Parameter 'value')");
+    }
+
+    [TestMethod]
     public void Parse_When_Invalid_Guid_Throws_Exception()
     {
         // Arrange
@@ -259,6 +269,6 @@ public class GuidTests
 }
 
 [StrongType(typeof(Guid))]
-public partial struct TestGuid
+public readonly partial struct TestGuid
 {
 }
