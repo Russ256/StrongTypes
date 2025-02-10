@@ -47,15 +47,39 @@ public class Generator : IIncrementalGenerator
         {
             ct.ThrowIfCancellationRequested();
 
+            // Identify the type to generate
+            AttributeSyntax attr = GetAttribute(sts);
+            TypeOfExpressionSyntax expression = attr.ArgumentList.Arguments[0].Expression as TypeOfExpressionSyntax;
+            SemanticModel sm = compilation.GetSemanticModel(sts.SyntaxTree);
+            ITypeSymbol type = sm.GetTypeInfo(expression.Type).Type;
+
             typesToGenerate.Add(new TypeToGenerate()
             {
                 Name = sts.Identifier.Text,
                 Namespace = GetNamespace(compilation, sts),
-                BaseType = "Guid"
+                BaseType = type.ToString()
             });
         }
 
         return typesToGenerate;
+    }
+
+    private static AttributeSyntax GetAttribute(StructDeclarationSyntax mds)
+    {
+        foreach (AttributeListSyntax al in mds.AttributeLists)
+        {
+            foreach (AttributeSyntax attr in al.Attributes)
+            {
+                string n = attr.Name.ToString();
+                if (n == "StrongType"
+                    || n == "StrongTypeAttribute")
+                {
+                    return attr;
+                }
+            }
+        }
+
+        return null;
     }
 
     public static string? GetNamespace(Compilation compilation, TypeDeclarationSyntax syntaxNode)
@@ -101,8 +125,7 @@ public class Generator : IIncrementalGenerator
                 string fullName = attributeContainingTypeSymbol.ToDisplayString();
 
                 // Is the attribute the [EnumExtensions] attribute?
-                if ((fullName == "StrongTypes.GuidAttribute")
-                    )
+                if (fullName == "StrongTypes.StrongTypeAttribute")
                 {
                     // Found it!
                     return structDeclarationSyntax;
