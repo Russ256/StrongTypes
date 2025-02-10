@@ -3,6 +3,11 @@ namespace StrongTypes.Tests;
 using FluentAssertions;
 using System.Text.Json;
 
+[StrongType(typeof(int))]
+public partial struct TestInt
+{
+}
+
 [TestClass]
 public class IntTests
 {
@@ -14,6 +19,16 @@ public class IntTests
 
         // Assert
         sut.ToString().Should().Be("500");
+    }
+
+    [TestMethod]
+    public void Int32_Is_Generated_As_Int()
+    {
+        // Act
+        TestInt32 sut = new(500);
+
+        // Assert
+        sut.Value.Should().BeOfType(typeof(int));
     }
 
     [TestMethod]
@@ -69,7 +84,7 @@ public class IntTests
     }
 }
 
-[StrongType(typeof(int))]
-public partial struct TestInt
+[StrongType(typeof(Int32))] // Do not remove Int32!
+public partial struct TestInt32
 {
 }
