@@ -26,7 +26,7 @@ public class GuidTests
         TestId id = default;
 
         // Assert
-        id.Should().BeSameAs(TestId.Empty());
+        id.Should().Be(TestId.Empty());
     }
 
     [TestMethod]
