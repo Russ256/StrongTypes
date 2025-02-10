@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,6 +13,9 @@ using System.Threading;
 [Generator(LanguageNames.CSharp)]
 public class Generator : IIncrementalGenerator
 {
+    private static readonly string[] supportedTypes = ["int", "System.Guid"];
+    private static SourceProductionContext sourceProductionContext;
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Add the our attributes to the compilation
@@ -54,6 +58,19 @@ public class Generator : IIncrementalGenerator
             ITypeSymbol typeSymbol = sm.GetTypeInfo(expression.Type).Type;
             string type = typeSymbol.ToString();
             if (type == "System.Int32") type = "int";            
+
+            if (!supportedTypes.Contains(type))
+            {
+                Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0001",
+                                       "Not Supported",
+                                       "Type not supported",
+                                       "Strong Types",
+                                       DiagnosticSeverity.Error, true), 
+                                       attr.ArgumentList.Arguments[0].GetLocation());
+
+                sourceProductionContext.ReportDiagnostic(diagnostic);
+                continue;
+            }
 
             typesToGenerate.Add(new TypeToGenerate()
             {
@@ -103,6 +120,8 @@ public class Generator : IIncrementalGenerator
 
     private static void Execute(Compilation compilation, ImmutableArray<StructDeclarationSyntax> structs, SourceProductionContext context)
     {
+        sourceProductionContext = context;
+
         List<TypeToGenerate> endpointsToGenerate = GetTypesToGenerate(compilation, structs.Distinct(), context.CancellationToken);
 
         foreach (TypeToGenerate typeToGenerate in endpointsToGenerate)
