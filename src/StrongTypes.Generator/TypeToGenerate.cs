@@ -1,4 +1,4 @@
-﻿namespace StrongTypes.Generator;
+﻿namespace StrongTypes;
 
 public struct TypeToGenerate
 {

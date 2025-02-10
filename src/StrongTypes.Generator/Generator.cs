@@ -1,4 +1,4 @@
-﻿namespace StrongTypes.Generator;
+﻿namespace StrongTypes;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
