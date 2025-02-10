@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Text.Json;
 
 [StrongType(typeof(int))]
-public partial struct TestInt
+public readonly partial struct TestInt
 {
 }
 
@@ -51,7 +51,7 @@ public class IntTests
     {
         // Arrange
         int value = 500;
-        TestInt sut = new TestInt(value);
+        TestInt sut = new(value);
 
         // Act
         string result = JsonSerializer.Serialize(sut);
