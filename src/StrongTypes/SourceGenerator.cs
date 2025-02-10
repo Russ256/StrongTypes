@@ -101,7 +101,7 @@ public class SourceGenerator
 
     private static string GenerateGuid(TypeToGenerate typeToGenerate)
     {
-        string start = $$"""
+        string code = $$"""
                 // Auto-generated code 
                 namespace {{typeToGenerate.Namespace}};
 
@@ -180,17 +180,9 @@ public class SourceGenerator
                         public override void Write(Utf8JsonWriter writer, {{typeToGenerate.Name}} value, JsonSerializerOptions options)
                             => writer.WriteStringValue(value._value);
                     }
-
-                """;
-
-        string end = $$"""
                 }
                 """;
 
-        StringBuilder sb = new(start);
-
-        sb.AppendLine(end);
-
-        return sb.ToString();
+        return code;
     }
 }
