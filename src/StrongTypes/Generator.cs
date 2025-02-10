@@ -59,7 +59,8 @@ public class Generator : IIncrementalGenerator
             {
                 Name = sts.Identifier.Text,
                 Namespace = GetNamespace(compilation, sts),
-                BaseType = type
+                BaseType = type,
+                Modifiers = sts.Modifiers.ToString()
             });
         }
 

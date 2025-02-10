@@ -26,7 +26,7 @@ public class SourceGenerator
                         using System.Text.Json;
                          
                         [JsonConverter(typeof(JsonConverter))]
-                        public readonly partial struct {{typeToGenerate.Name}} : IComparable<{{typeToGenerate.Name}}>, IParsable<{{typeToGenerate.Name}}>
+                        {{typeToGenerate.Modifiers}} struct {{typeToGenerate.Name}} : IComparable<{{typeToGenerate.Name}}>, IParsable<{{typeToGenerate.Name}}>
                         {
                             private readonly {{typeToGenerate.BaseType}} _value;
                             public {{typeToGenerate.BaseType}} Value => _value;
@@ -110,7 +110,7 @@ public class SourceGenerator
                 using System.Text.Json;
                 
                 [JsonConverter(typeof(JsonConverter))]
-                public readonly partial struct {{typeToGenerate.Name}} : IComparable<{{typeToGenerate.Name}}>, IParsable<{{typeToGenerate.Name}}>
+                {{typeToGenerate.Modifiers}} struct {{typeToGenerate.Name}} : IComparable<{{typeToGenerate.Name}}>, IParsable<{{typeToGenerate.Name}}>
                 {
                     private readonly {{typeToGenerate.BaseType}} _value;
 
