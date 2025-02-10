@@ -18,19 +18,20 @@ public class Generator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // Add the our attributes to the compilation
+        // Add our attribute to the project
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
-             "StringTypes.Attributes.g.cs",
-           SourceText.From(Attributes.Source, Encoding.UTF8)));
+                                                        "StringTypes.Attributes.g.cs",
+                                                        SourceText.From(Attributes.Source,
+                                                        Encoding.UTF8)));
 
         // Create a simple filter for class
-        IncrementalValuesProvider<StructDeclarationSyntax> enumDeclarations = context.SyntaxProvider
+        IncrementalValuesProvider<TypeDeclarationSyntax> enumDeclarations = context.SyntaxProvider
             .CreateSyntaxProvider(
                 predicate: static (s, _) => IsSyntaxTargetForGeneration(s), // select classes with attributes
                 transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx)) // sect the enum with the [MinApiGet] attribute
             .Where(static m => m is not null)!; // filter out attributed classes that we don't care about
 
-        IncrementalValueProvider<(Compilation, ImmutableArray<StructDeclarationSyntax>)> compilationAndClasses
+        IncrementalValueProvider<(Compilation, ImmutableArray<TypeDeclarationSyntax>)> compilationAndClasses
           = context.CompilationProvider.Combine(enumDeclarations.Collect());
 
         // Generate the source using the compilation and enums
@@ -40,21 +41,21 @@ public class Generator : IIncrementalGenerator
 
     private static bool IsSyntaxTargetForGeneration(SyntaxNode node)
     {
-        return node is StructDeclarationSyntax m && m.AttributeLists.Count > 0;
+        return node is TypeDeclarationSyntax m && m.AttributeLists.Count > 0;
     }
 
-    private static List<TypeToGenerate> GetTypesToGenerate(Compilation compilation, IEnumerable<StructDeclarationSyntax> structs, CancellationToken ct)
+    private static List<TypeToGenerate> GetTypesToGenerate(Compilation compilation, IEnumerable<TypeDeclarationSyntax> types, CancellationToken ct)
     {
         List<TypeToGenerate> typesToGenerate = [];
 
-        foreach (StructDeclarationSyntax sts in structs)
+        foreach (TypeDeclarationSyntax typeDeclaration in types)
         {
             ct.ThrowIfCancellationRequested();
 
             // Identify the type to generate
-            AttributeSyntax attr = GetAttribute(sts);
+            AttributeSyntax attr = GetAttribute(typeDeclaration);
             TypeOfExpressionSyntax expression = attr.ArgumentList.Arguments[0].Expression as TypeOfExpressionSyntax;
-            SemanticModel sm = compilation.GetSemanticModel(sts.SyntaxTree);
+            SemanticModel sm = compilation.GetSemanticModel(typeDeclaration.SyntaxTree);
             ITypeSymbol typeSymbol = sm.GetTypeInfo(expression.Type).Type;
             string type = typeSymbol.ToString();
             if (type == "System.Int32") type = "int";            
@@ -74,19 +75,20 @@ public class Generator : IIncrementalGenerator
 
             typesToGenerate.Add(new TypeToGenerate()
             {
-                Name = sts.Identifier.Text,
-                Namespace = GetNamespace(compilation, sts),
+                ClassStruct = typeDeclaration.Keyword.Text,
+                Name = typeDeclaration.Identifier.Text,
+                Namespace = GetNamespace(compilation, typeDeclaration),
                 BaseType = type,
-                Modifiers = sts.Modifiers.ToString()
+                Modifiers = typeDeclaration.Modifiers.ToString()
             });
         }
 
         return typesToGenerate;
     }
 
-    private static AttributeSyntax GetAttribute(StructDeclarationSyntax mds)
+    private static AttributeSyntax GetAttribute(TypeDeclarationSyntax tds)
     {
-        foreach (AttributeListSyntax al in mds.AttributeLists)
+        foreach (AttributeListSyntax al in tds.AttributeLists)
         {
             foreach (AttributeSyntax attr in al.Attributes)
             {
@@ -102,12 +104,12 @@ public class Generator : IIncrementalGenerator
         return null;
     }
 
-    public static string? GetNamespace(Compilation compilation, TypeDeclarationSyntax syntaxNode)
+    public static string? GetNamespace(Compilation compilation, TypeDeclarationSyntax tds)
     {
-        SemanticModel semanticModel = compilation.GetSemanticModel(syntaxNode.SyntaxTree);
+        SemanticModel semanticModel = compilation.GetSemanticModel(tds.SyntaxTree);
 
         // Get the symbol for the type declaration.
-        if (semanticModel.GetDeclaredSymbol(syntaxNode) is INamedTypeSymbol typeSymbol)
+        if (semanticModel.GetDeclaredSymbol(tds) is INamedTypeSymbol typeSymbol)
         {
             // Get the fully qualified namespace as a string.
             string namespaceName = typeSymbol.ContainingNamespace.ToDisplayString();
@@ -118,11 +120,11 @@ public class Generator : IIncrementalGenerator
     }
 
 
-    private static void Execute(Compilation compilation, ImmutableArray<StructDeclarationSyntax> structs, SourceProductionContext context)
+    private static void Execute(Compilation compilation, ImmutableArray<TypeDeclarationSyntax> typeDeclarations, SourceProductionContext context)
     {
         sourceProductionContext = context;
 
-        List<TypeToGenerate> endpointsToGenerate = GetTypesToGenerate(compilation, structs.Distinct(), context.CancellationToken);
+        List<TypeToGenerate> endpointsToGenerate = GetTypesToGenerate(compilation, typeDeclarations.Distinct(), context.CancellationToken);
 
         foreach (TypeToGenerate typeToGenerate in endpointsToGenerate)
         {
@@ -131,13 +133,13 @@ public class Generator : IIncrementalGenerator
         }
     }
 
-    private static StructDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
+    private static TypeDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
     {
         // we know the node is a EnumDeclarationSyntax thanks to IsSyntaxTargetForGeneration
-        StructDeclarationSyntax structDeclarationSyntax = (StructDeclarationSyntax)context.Node;
+        TypeDeclarationSyntax typeDeclarationSyntax = (TypeDeclarationSyntax)context.Node;
 
         // loop through all the attributes on the method
-        foreach (AttributeListSyntax attributeListSyntax in structDeclarationSyntax.AttributeLists)
+        foreach (AttributeListSyntax attributeListSyntax in typeDeclarationSyntax.AttributeLists)
         {
             foreach (AttributeSyntax attributeSyntax in attributeListSyntax.Attributes)
             {
@@ -150,7 +152,7 @@ public class Generator : IIncrementalGenerator
                 if (fullName == "StrongTypes.StrongTypeAttribute")
                 {
                     // Found it!
-                    return structDeclarationSyntax;
+                    return typeDeclarationSyntax;
                 }
             }
         }

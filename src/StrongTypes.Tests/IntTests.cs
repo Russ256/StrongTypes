@@ -1,6 +1,7 @@
 namespace StrongTypes.Tests;
 
 using FluentAssertions;
+using System.Diagnostics;
 using System.Text.Json;
 
 [StrongType(typeof(int))]
@@ -85,6 +86,6 @@ public class IntTests
 }
 
 [StrongType(typeof(Int32))] // Do not remove Int32!
-public partial struct TestInt32
+public readonly partial struct TestInt32
 {
 }
