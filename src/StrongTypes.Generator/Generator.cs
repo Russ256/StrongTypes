@@ -2,9 +2,11 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading;
 
 [Generator(LanguageNames.CSharp)]
@@ -12,6 +14,11 @@ public class Generator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        // Add the our attributes to the compilation
+        context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
+             "StringTypes.Attributes.g.cs",
+           SourceText.From(Attributes.Source, Encoding.UTF8)));
+
         // Create a simple filter for class
         IncrementalValuesProvider<StructDeclarationSyntax> enumDeclarations = context.SyntaxProvider
             .CreateSyntaxProvider(
