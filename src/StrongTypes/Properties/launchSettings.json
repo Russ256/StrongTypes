@@ -6,6 +6,10 @@
     "Generator": {
       "commandName": "DebugRoslynComponent",
       "targetProject": "..\\StrongTypes.Test\\StrongTypes.Test.csproj"
+    },
+    "Tests": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\StrongTypes.Tests\\StrongTypes.Tests.csproj"
     }
   }
 }

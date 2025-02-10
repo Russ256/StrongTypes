@@ -1,4 +1,4 @@
 ﻿using StrongTypes.Test;
 
-TestId testId = new TestId();
+TestId testId = TestId.New();
 
