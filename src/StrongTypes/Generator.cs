@@ -51,13 +51,15 @@ public class Generator : IIncrementalGenerator
             AttributeSyntax attr = GetAttribute(sts);
             TypeOfExpressionSyntax expression = attr.ArgumentList.Arguments[0].Expression as TypeOfExpressionSyntax;
             SemanticModel sm = compilation.GetSemanticModel(sts.SyntaxTree);
-            ITypeSymbol type = sm.GetTypeInfo(expression.Type).Type;
+            ITypeSymbol typeSymbol = sm.GetTypeInfo(expression.Type).Type;
+            string type = typeSymbol.ToString();
+            if (type == "System.Int32") type = "int";            
 
             typesToGenerate.Add(new TypeToGenerate()
             {
                 Name = sts.Identifier.Text,
                 Namespace = GetNamespace(compilation, sts),
-                BaseType = type.ToString()
+                BaseType = type
             });
         }
 
