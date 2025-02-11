@@ -161,7 +161,7 @@ public class SourceGenerator
 
 
                     public static {{typeToGenerate.Name}} New() => new {{typeToGenerate.Name}}(Guid.NewGuid());
-                    public static {{typeToGenerate.Name}} Empty() => new {{typeToGenerate.Name}}(Guid.Empty);
+                    public static readonly {{typeToGenerate.Name}} Empty = new {{typeToGenerate.Name}}();
 
                     public override string ToString() => _value.ToString();
 

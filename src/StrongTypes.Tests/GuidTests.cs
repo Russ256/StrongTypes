@@ -57,7 +57,7 @@ public class GuidTests
         TestGuid sut = new();
 
         // Assert
-        sut.Should().NotBeSameAs(TestGuid.Empty());
+        sut.Should().NotBeSameAs(TestGuid.Empty);
         sut.ToString().Should().Be("00000000-0000-0000-0000-000000000000");
     }
 
@@ -68,7 +68,7 @@ public class GuidTests
         TestGuid sut = default;
 
         // Assert
-        sut.Should().Be(TestGuid.Empty());
+        sut.Should().Be(TestGuid.Empty);
     }
 
     [TestMethod]
@@ -147,7 +147,7 @@ public class GuidTests
         TestGuid sut = TestGuid.New();
 
         // Assert
-        sut.Should().NotBeSameAs(TestGuid.Empty());
+        sut.Should().NotBeSameAs(TestGuid.Empty);
     }
 
     [TestMethod]
@@ -250,7 +250,7 @@ public class GuidTests
 
         // Assert
         result.Should().BeFalse();
-        sut.Should().Be(TestGuid.Empty());
+        sut.Should().Be(TestGuid.Empty);
     }
 
     [TestMethod]
