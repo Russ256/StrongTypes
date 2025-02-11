@@ -117,7 +117,8 @@ public class SourceGenerator
                 {{typeToGenerate.Modifiers}} {{typeToGenerate.ClassStruct}} {{typeToGenerate.Name}} : IComparable<{{typeToGenerate.Name}}>, IParsable<{{typeToGenerate.Name}}>
                 {
                     private readonly {{typeToGenerate.BaseType}} _value;
-
+                    public {{typeToGenerate.BaseType}} Value => _value;
+                
                     public {{typeToGenerate.Name}}({{typeToGenerate.BaseType}} value) => _value = value;
                     public {{typeToGenerate.Name}}(string value)
                     {
@@ -160,7 +161,7 @@ public class SourceGenerator
 
 
                     public static {{typeToGenerate.Name}} New() => new {{typeToGenerate.Name}}(Guid.NewGuid());
-                    public static {{typeToGenerate.Name}} Empty() => new {{typeToGenerate.Name}}(Guid.Empty);
+                    public static readonly {{typeToGenerate.Name}} Empty = new {{typeToGenerate.Name}}();
 
                     public override string ToString() => _value.ToString();
 
