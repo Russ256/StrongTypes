@@ -8,6 +8,7 @@ public class SourceGenerator
     {
         return typeToGenerate.BaseType switch
         {
+            "System.Uri" => GenerateUri(typeToGenerate),
             "System.Guid" => GenerateGuid(typeToGenerate),
             "int" => GenerateInt(typeToGenerate),
             _ => throw new ArgumentException($"Type {typeToGenerate.BaseType} is not supported"),
@@ -192,6 +193,50 @@ public class SourceGenerator
 
                         public override void Write(Utf8JsonWriter writer, {{typeToGenerate.Name}} value, JsonSerializerOptions options)
                             => writer.WriteStringValue(value._value);
+                    }
+                }
+                """;
+
+        return code;
+    }
+
+    private static string GenerateUri(TypeToGenerate typeToGenerate)
+    {
+        string code = $$"""
+                // Auto-generated code
+                #nullable enable
+
+                namespace {{typeToGenerate.Namespace}};
+
+                using System.Diagnostics.CodeAnalysis;
+                using System.Text.Json.Serialization;
+                using System.Text.Json;
+
+                [JsonConverter(typeof(JsonConverter))]
+                {{typeToGenerate.Modifiers}} class {{typeToGenerate.Name}}
+                {
+                    private readonly {{typeToGenerate.BaseType}} _value;
+                    public {{typeToGenerate.BaseType}} Value => _value;
+
+                    public {{typeToGenerate.Name}}({{typeToGenerate.BaseType}} value) => _value = value;
+                    public {{typeToGenerate.Name}}(string value)
+                    {
+                        ArgumentNullException.ThrowIfNull(value, nameof(value));
+
+                        _value = new Uri(value);
+                    }
+
+                    public override string ToString() => _value.ToString();
+
+                    {{GenerateEquals(typeToGenerate)}}
+                                
+                    public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
+                    {
+                        public override {{typeToGenerate.Name}} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+                            => new {{typeToGenerate.Name}}(reader.GetString()!);
+
+                        public override void Write(Utf8JsonWriter writer, {{typeToGenerate.Name}} value, JsonSerializerOptions options)
+                            => writer.WriteStringValue(value._value.ToString());
                     }
                 }
                 """;

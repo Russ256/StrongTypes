@@ -13,7 +13,7 @@ using System.Threading;
 [Generator(LanguageNames.CSharp)]
 public class Generator : IIncrementalGenerator
 {
-    private static readonly string[] _supportedTypes = ["int", "System.Guid"];
+    private static readonly string[] _supportedTypes = ["int", "System.Guid", "System.Uri"];
     private static SourceProductionContext _sourceProductionContext;
     internal const string _namespace = "StrongTypes";
     internal const string _attributeName = "StrongType";
@@ -101,6 +101,19 @@ public class Generator : IIncrementalGenerator
                 Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0001",
                                        "Not Supported",
                                        "Type not supported",
+                                       "Strong Types",
+                                       DiagnosticSeverity.Error, true),
+                                       attr.ArgumentList.Arguments[0].GetLocation());
+
+                _sourceProductionContext.ReportDiagnostic(diagnostic);
+                continue;
+            }
+
+            if (type == "System.Uri" && typeDeclaration is not ClassDeclarationSyntax)
+            {
+                Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0002",
+                                       "Not Supported",
+                                       "Only class supported for Uri type",
                                        "Strong Types",
                                        DiagnosticSeverity.Error, true),
                                        attr.ArgumentList.Arguments[0].GetLocation());

@@ -5,7 +5,7 @@ using System;
 using System.Text.Json;
 
 [StrongType(typeof(Guid))]
-public readonly partial record struct TestGuidStruct
+public readonly partial struct TestGuidStruct
 {
 }
 
