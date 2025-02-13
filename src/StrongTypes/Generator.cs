@@ -47,7 +47,7 @@ public class Generator : IIncrementalGenerator
 
         foreach (TypeToGenerate typeToGenerate in endpointsToGenerate)
         {
-            string source = SourceGenerator.Generate(typeToGenerate);
+            string source = SourceGenerator.Generate(compilation, typeToGenerate);
             context.AddSource($"{typeToGenerate.Name}.g.cs", source);
         }
     }
@@ -111,11 +111,9 @@ public class Generator : IIncrementalGenerator
 
             typesToGenerate.Add(new TypeToGenerate()
             {
-                ClassStruct = typeDeclaration.Keyword.Text,
-                Name = typeDeclaration.Identifier.Text,
+                DeclarationSyntax = typeDeclaration,
                 Namespace = compilation.Namespace(typeDeclaration),
                 BaseType = type,
-                Modifiers = typeDeclaration.Modifiers.ToString()
             });
         }
 
@@ -125,6 +123,7 @@ public class Generator : IIncrementalGenerator
     private static bool IsSyntaxTargetForGeneration(SyntaxNode node)
     {
         return node is ClassDeclarationSyntax m && m.AttributeLists.Count > 0
+            || node is RecordDeclarationSyntax r && r.AttributeLists.Count > 0
             || node is StructDeclarationSyntax s && s.AttributeLists.Count > 0;
     }
 }

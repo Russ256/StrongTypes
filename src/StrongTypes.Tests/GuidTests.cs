@@ -269,6 +269,6 @@ public class GuidTests
 }
 
 [StrongType(typeof(Guid))]
-public readonly partial struct TestGuid
+public readonly partial record struct TestGuid
 {
 }
