@@ -1,12 +1,10 @@
 ﻿namespace StrongTypes;
 
-using Microsoft.CodeAnalysis;
 using System;
-using System.Text;
 
 public class SourceGenerator
 {
-    public static string Generate(Compilation compilation, TypeToGenerate typeToGenerate)
+    public static string Generate(TypeToGenerate typeToGenerate)
     {
         return typeToGenerate.BaseType switch
         {
@@ -133,7 +131,7 @@ public class SourceGenerator
                 using System.Text.Json;
 
                 [JsonConverter(typeof(JsonConverter))]
-                {{GenerateType(typeToGenerate)}}                
+                {{GenerateType(typeToGenerate)}}
                 {
                     private readonly {{typeToGenerate.BaseType}} _value;
                     public {{typeToGenerate.BaseType}} Value => _value;

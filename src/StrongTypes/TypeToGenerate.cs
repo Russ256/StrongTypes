@@ -4,11 +4,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 public struct TypeToGenerate
 {
-    public TypeDeclarationSyntax DeclarationSyntax { get; set; }
-
     public string BaseType { get; set; }
 
-    public string ClassOrStruct
+    public readonly string ClassOrStruct
     {
         get
         {
@@ -23,23 +21,9 @@ public struct TypeToGenerate
         }
     }
 
-    public string Modifiers 
-    { 
-        get
-        {
-            return DeclarationSyntax.Modifiers.ToString();
-        }
-    }
-
-    public string Name
-    {
-        get
-        {
-            return DeclarationSyntax.Identifier.Text;
-        }
-    }
-
-    public string Namespace { get; set; }
-
+    public TypeDeclarationSyntax DeclarationSyntax { get; set; }
     public readonly bool IsRecord => DeclarationSyntax is RecordDeclarationSyntax;
+    public readonly string Modifiers => DeclarationSyntax.Modifiers.ToString();
+    public readonly string Name => DeclarationSyntax.Identifier.Text;
+    public string Namespace { get; set; }
 }

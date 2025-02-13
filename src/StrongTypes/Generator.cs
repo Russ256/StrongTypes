@@ -13,10 +13,10 @@ using System.Threading;
 [Generator(LanguageNames.CSharp)]
 public class Generator : IIncrementalGenerator
 {
-    private static readonly string[] supportedTypes = ["int", "System.Guid"];
-    private static SourceProductionContext sourceProductionContext;
-    internal const string Namespace = "StrongTypes";
-    internal const string AttributeName = "StrongType";
+    private static readonly string[] _supportedTypes = ["int", "System.Guid"];
+    private static SourceProductionContext _sourceProductionContext;
+    internal const string _namespace = "StrongTypes";
+    internal const string _attributeName = "StrongType";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -41,13 +41,13 @@ public class Generator : IIncrementalGenerator
 
     private static void Execute(Compilation compilation, ImmutableArray<TypeDeclarationSyntax> typeDeclarations, SourceProductionContext context)
     {
-        sourceProductionContext = context;
+        _sourceProductionContext = context;
 
         List<TypeToGenerate> endpointsToGenerate = GetTypesToGenerate(compilation, typeDeclarations.Distinct(), context.CancellationToken);
 
         foreach (TypeToGenerate typeToGenerate in endpointsToGenerate)
         {
-            string source = SourceGenerator.Generate(compilation, typeToGenerate);
+            string source = SourceGenerator.Generate(typeToGenerate);
             context.AddSource($"{typeToGenerate.Name}.g.cs", source);
         }
     }
@@ -89,14 +89,14 @@ public class Generator : IIncrementalGenerator
             ct.ThrowIfCancellationRequested();
 
             // Identify the type to generate
-            AttributeSyntax attr = compilation.GetAttribute(typeDeclaration, AttributeName);
+            AttributeSyntax attr = compilation.GetAttribute(typeDeclaration, _attributeName);
             TypeOfExpressionSyntax expression = attr.ArgumentList.Arguments[0].Expression as TypeOfExpressionSyntax;
             SemanticModel sm = compilation.GetSemanticModel(typeDeclaration.SyntaxTree);
             ITypeSymbol typeSymbol = sm.GetTypeInfo(expression.Type).Type;
             string type = typeSymbol.ToString();
             if (type == "System.Int32") type = "int";
 
-            if (!supportedTypes.Contains(type))
+            if (!_supportedTypes.Contains(type))
             {
                 Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0001",
                                        "Not Supported",
@@ -105,7 +105,7 @@ public class Generator : IIncrementalGenerator
                                        DiagnosticSeverity.Error, true),
                                        attr.ArgumentList.Arguments[0].GetLocation());
 
-                sourceProductionContext.ReportDiagnostic(diagnostic);
+                _sourceProductionContext.ReportDiagnostic(diagnostic);
                 continue;
             }
 
