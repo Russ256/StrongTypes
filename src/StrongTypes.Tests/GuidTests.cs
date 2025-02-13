@@ -209,7 +209,7 @@ public class GuidTests
         Action action = () => TestGuidStruct.Parse(value);
 
         // Assert
-        action.Should().Throw<FormatException>().WithMessage($"'{value}' is not a valid TestGuid.");
+        action.Should().Throw<FormatException>().WithMessage($"'{value}' is not a valid TestGuidStruct.");
     }
 
     [TestMethod]
