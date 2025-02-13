@@ -1,11 +1,15 @@
 namespace StrongTypes.Tests;
 
 using FluentAssertions;
-using System.Diagnostics;
 using System.Text.Json;
 
 [StrongType(typeof(int))]
 public readonly partial struct TestInt
+{
+}
+
+[StrongType(typeof(Int32))] // Do not remove Int32!
+public readonly partial struct TestInt32
 {
 }
 
@@ -83,9 +87,4 @@ public class IntTests
         // Assert
         action.Should().Throw<FormatException>().WithMessage($"'{value}' is not a valid TestInt.");
     }
-}
-
-[StrongType(typeof(Int32))] // Do not remove Int32!
-public readonly partial struct TestInt32
-{
 }

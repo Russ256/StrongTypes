@@ -13,10 +13,10 @@ using System.Threading;
 [Generator(LanguageNames.CSharp)]
 public class Generator : IIncrementalGenerator
 {
-    private static readonly string[] supportedTypes = ["int", "System.Guid"];
-    private static SourceProductionContext sourceProductionContext;
-    internal const string Namespace = "StrongTypes";
-    internal const string AttributeName = "StrongType";
+    private static readonly string[] _supportedTypes = ["int", "System.Guid"];
+    private static SourceProductionContext _sourceProductionContext;
+    internal const string _namespace = "StrongTypes";
+    internal const string _attributeName = "StrongType";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -41,7 +41,7 @@ public class Generator : IIncrementalGenerator
 
     private static void Execute(Compilation compilation, ImmutableArray<TypeDeclarationSyntax> typeDeclarations, SourceProductionContext context)
     {
-        sourceProductionContext = context;
+        _sourceProductionContext = context;
 
         List<TypeToGenerate> endpointsToGenerate = GetTypesToGenerate(compilation, typeDeclarations.Distinct(), context.CancellationToken);
 
@@ -89,14 +89,14 @@ public class Generator : IIncrementalGenerator
             ct.ThrowIfCancellationRequested();
 
             // Identify the type to generate
-            AttributeSyntax attr = compilation.GetAttribute(typeDeclaration, AttributeName);
+            AttributeSyntax attr = compilation.GetAttribute(typeDeclaration, _attributeName);
             TypeOfExpressionSyntax expression = attr.ArgumentList.Arguments[0].Expression as TypeOfExpressionSyntax;
             SemanticModel sm = compilation.GetSemanticModel(typeDeclaration.SyntaxTree);
             ITypeSymbol typeSymbol = sm.GetTypeInfo(expression.Type).Type;
             string type = typeSymbol.ToString();
             if (type == "System.Int32") type = "int";
 
-            if (!supportedTypes.Contains(type))
+            if (!_supportedTypes.Contains(type))
             {
                 Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0001",
                                        "Not Supported",
@@ -105,17 +105,15 @@ public class Generator : IIncrementalGenerator
                                        DiagnosticSeverity.Error, true),
                                        attr.ArgumentList.Arguments[0].GetLocation());
 
-                sourceProductionContext.ReportDiagnostic(diagnostic);
+                _sourceProductionContext.ReportDiagnostic(diagnostic);
                 continue;
             }
 
             typesToGenerate.Add(new TypeToGenerate()
             {
-                ClassStruct = typeDeclaration.Keyword.Text,
-                Name = typeDeclaration.Identifier.Text,
+                DeclarationSyntax = typeDeclaration,
                 Namespace = compilation.Namespace(typeDeclaration),
                 BaseType = type,
-                Modifiers = typeDeclaration.Modifiers.ToString()
             });
         }
 
@@ -125,6 +123,7 @@ public class Generator : IIncrementalGenerator
     private static bool IsSyntaxTargetForGeneration(SyntaxNode node)
     {
         return node is ClassDeclarationSyntax m && m.AttributeLists.Count > 0
+            || node is RecordDeclarationSyntax r && r.AttributeLists.Count > 0
             || node is StructDeclarationSyntax s && s.AttributeLists.Count > 0;
     }
 }

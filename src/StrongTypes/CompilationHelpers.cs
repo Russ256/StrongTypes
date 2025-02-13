@@ -16,7 +16,7 @@ internal static class CompilationHelpers
                 string n = attributeSyntax.Name.ToString();
                 string ns = compilation.Namespace(attributeSyntax);
 
-                if (ns == Generator.Namespace && (n == name || n == nameWithAttribute))
+                if (ns == Generator._namespace && (n == name || n == nameWithAttribute))
                 {
                     return attributeSyntax;
                 }

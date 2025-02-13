@@ -4,6 +4,16 @@ using FluentAssertions;
 using System;
 using System.Text.Json;
 
+[StrongType(typeof(Guid))]
+public readonly partial struct TestGuidStruct
+{
+}
+
+[StrongType(typeof(Guid))]
+public readonly partial record struct TestGuidRecord
+{
+}
+
 [TestClass]
 public class GuidTests
 {
@@ -11,8 +21,8 @@ public class GuidTests
     public void CompareTo_When_LessThan_Returns_Negative()
     {
         // Arrange
-        TestGuid sut1 = new("3289446b-e0d8-485e-a5a6-0e2a2b986dee");
-        TestGuid sut2 = new("3289446b-e0d8-485e-a5a6-0e2a2b986def");
+        TestGuidStruct sut1 = new("3289446b-e0d8-485e-a5a6-0e2a2b986dee");
+        TestGuidStruct sut2 = new("3289446b-e0d8-485e-a5a6-0e2a2b986def");
 
         // Act
         int result = sut1.CompareTo(sut2);
@@ -25,8 +35,8 @@ public class GuidTests
     public void CompareTo_When_MoreThan_Returns_Positive()
     {
         // Arrange
-        TestGuid sut1 = new("3289446b-e0d8-485e-a5a6-0e2a2b986dee");
-        TestGuid sut2 = new("3289446b-e0d8-485e-a5a6-0e2a2b986dea");
+        TestGuidStruct sut1 = new("3289446b-e0d8-485e-a5a6-0e2a2b986dee");
+        TestGuidStruct sut2 = new("3289446b-e0d8-485e-a5a6-0e2a2b986dea");
 
         // Act
         int result = sut1.CompareTo(sut2);
@@ -40,8 +50,8 @@ public class GuidTests
     {
         // Arrange
         Guid guid = Guid.NewGuid();
-        TestGuid sut1 = new(guid);
-        TestGuid sut2 = new(guid);
+        TestGuidStruct sut1 = new(guid);
+        TestGuidStruct sut2 = new(guid);
 
         // Act
         int result = sut1.CompareTo(sut2);
@@ -54,10 +64,10 @@ public class GuidTests
     public void Default_Constructor_Should_Not_Be_Empty()
     {
         // Act
-        TestGuid sut = new();
+        TestGuidStruct sut = new();
 
         // Assert
-        sut.Should().NotBeSameAs(TestGuid.Empty);
+        sut.Should().NotBeSameAs(TestGuidStruct.Empty);
         sut.ToString().Should().Be("00000000-0000-0000-0000-000000000000");
     }
 
@@ -65,18 +75,18 @@ public class GuidTests
     public void Default_Should_Be_Empty()
     {
         // Act
-        TestGuid sut = default;
+        TestGuidStruct sut = default;
 
         // Assert
-        sut.Should().Be(TestGuid.Empty);
+        sut.Should().Be(TestGuidStruct.Empty);
     }
 
     [TestMethod]
     public void Equals_Operator_When_Not_Same_Returns_False()
     {
         // Arrange
-        TestGuid sut1 = TestGuid.New();
-        TestGuid sut2 = TestGuid.New();
+        TestGuidStruct sut1 = TestGuidStruct.New();
+        TestGuidStruct sut2 = TestGuidStruct.New();
 
         // Act
         bool result = sut1 == sut2;
@@ -90,8 +100,8 @@ public class GuidTests
     {
         // Arrange
         Guid guid = Guid.NewGuid();
-        TestGuid sut1 = new(guid);
-        TestGuid sut2 = new(guid);
+        TestGuidStruct sut1 = new(guid);
+        TestGuidStruct sut2 = new(guid);
 
         // Act
         bool result = sut1 == sut2;
@@ -107,7 +117,7 @@ public class GuidTests
         Guid guid = Guid.NewGuid();
 
         // Act
-        TestGuid sut = new(guid);
+        TestGuidStruct sut = new(guid);
 
         // Assert
         sut.ToString().Should().Be(guid.ToString());
@@ -121,7 +131,7 @@ public class GuidTests
         string json = $"\"{guid}\"";
 
         // Act
-        TestGuid result = JsonSerializer.Deserialize<TestGuid>(json);
+        TestGuidStruct result = JsonSerializer.Deserialize<TestGuidStruct>(json);
 
         // Assert
         result.ToString().Should().Be(guid.ToString());
@@ -131,7 +141,7 @@ public class GuidTests
     public void Json_Serialize_Should_Include_Quotes()
     {
         // Arrange
-        TestGuid sut = TestGuid.New();
+        TestGuidStruct sut = TestGuidStruct.New();
 
         // Act
         string result = JsonSerializer.Serialize(sut);
@@ -144,18 +154,18 @@ public class GuidTests
     public void New_Should_Not_Be_Empty()
     {
         // Act
-        TestGuid sut = TestGuid.New();
+        TestGuidStruct sut = TestGuidStruct.New();
 
         // Assert
-        sut.Should().NotBeSameAs(TestGuid.Empty);
+        sut.Should().NotBeSameAs(TestGuidStruct.Empty);
     }
 
     [TestMethod]
     public void NotEquals_Operator_When_Not_Same_Returns_True()
     {
         // Arrange
-        TestGuid sut1 = TestGuid.New();
-        TestGuid sut2 = TestGuid.New();
+        TestGuidStruct sut1 = TestGuidStruct.New();
+        TestGuidStruct sut2 = TestGuidStruct.New();
 
         // Act
         bool result = sut1 != sut2;
@@ -169,8 +179,8 @@ public class GuidTests
     {
         // Arrange
         Guid guid = Guid.NewGuid();
-        TestGuid sut1 = new(guid);
-        TestGuid sut2 = new(guid);
+        TestGuidStruct sut1 = new(guid);
+        TestGuidStruct sut2 = new(guid);
 
         // Act
         bool result = sut1 != sut2;
@@ -183,7 +193,7 @@ public class GuidTests
     public void NullGuid_Constructor_Should_Match_Guid()
     {
         // Act
-        Action action = () => _ = new TestGuid(null!);
+        Action action = () => _ = new TestGuidStruct(null!);
 
         // Assert
         action.Should().Throw<ArgumentNullException>().WithMessage("Value cannot be null. (Parameter 'value')");
@@ -196,7 +206,7 @@ public class GuidTests
         string value = "test";
 
         // Act
-        Action action = () => TestGuid.Parse(value);
+        Action action = () => TestGuidStruct.Parse(value);
 
         // Assert
         action.Should().Throw<FormatException>().WithMessage($"'{value}' is not a valid TestGuid.");
@@ -209,7 +219,7 @@ public class GuidTests
         string value = Guid.NewGuid().ToString();
 
         // Act
-        TestGuid result = TestGuid.Parse(value);
+        TestGuidStruct result = TestGuidStruct.Parse(value);
 
         // Assert
         result.ToString().Should().Be(value);
@@ -233,7 +243,7 @@ public class GuidTests
         Guid guid = Guid.NewGuid();
 
         // Act
-        TestGuid sut = new(guid.ToString(format));
+        TestGuidStruct sut = new(guid.ToString(format));
 
         // Assert
         sut.ToString().Should().Be(guid.ToString());
@@ -246,11 +256,11 @@ public class GuidTests
         string value = "test";
 
         // Act
-        bool result = TestGuid.TryParse(value, out TestGuid sut);
+        bool result = TestGuidStruct.TryParse(value, out TestGuidStruct sut);
 
         // Assert
         result.Should().BeFalse();
-        sut.Should().Be(TestGuid.Empty);
+        sut.Should().Be(TestGuidStruct.Empty);
     }
 
     [TestMethod]
@@ -260,15 +270,10 @@ public class GuidTests
         string value = Guid.NewGuid().ToString();
 
         // Act
-        bool result = TestGuid.TryParse(value, out TestGuid id);
+        bool result = TestGuidStruct.TryParse(value, out TestGuidStruct id);
 
         // Assert
         result.Should().BeTrue();
         id.ToString().Should().Be(value);
     }
-}
-
-[StrongType(typeof(Guid))]
-public readonly partial struct TestGuid
-{
 }
