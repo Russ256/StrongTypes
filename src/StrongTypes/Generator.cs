@@ -22,7 +22,7 @@ public class Generator : IIncrementalGenerator
     {
         // Add our attribute to the project
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
-                                                        "StringTypes.Attributes.g.cs",
+                                                        "StrongTypes.Attributes.g.cs",
                                                         SourceText.From(Attributes.Source, Encoding.UTF8)));
 
         // Create a simple filter for class
