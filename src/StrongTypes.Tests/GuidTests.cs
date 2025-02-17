@@ -96,12 +96,41 @@ public class GuidTests
     }
 
     [TestMethod]
+    public void Record_Equals_Operator_When_Not_Same_Returns_False()
+    {
+        // Arrange
+        TestGuidRecord sut1 = TestGuidRecord.New();
+        TestGuidRecord sut2 = TestGuidRecord.New();
+
+        // Act
+        bool result = sut1 == sut2;
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [TestMethod]
     public void Equals_Operator_When_Same_Returns_true()
     {
         // Arrange
         Guid guid = Guid.NewGuid();
         TestGuidStruct sut1 = new(guid);
         TestGuidStruct sut2 = new(guid);
+
+        // Act
+        bool result = sut1 == sut2;
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void Recrod_Equals_Operator_When_Same_Returns_true()
+    {
+        // Arrange
+        Guid guid = Guid.NewGuid();
+        TestGuidRecord sut1 = new(guid);
+        TestGuidRecord sut2 = new(guid);
 
         // Act
         bool result = sut1 == sut2;

@@ -22,7 +22,7 @@ public class Generator : IIncrementalGenerator
     {
         // Add our attribute to the project
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
-                                                        "StringTypes.Attributes.g.cs",
+                                                        "StrongTypes.Attributes.g.cs",
                                                         SourceText.From(Attributes.Source, Encoding.UTF8)));
 
         // Create a simple filter for class
@@ -114,6 +114,19 @@ public class Generator : IIncrementalGenerator
                 Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0002",
                                        "Not Supported",
                                        "Only class supported for Uri type",
+                                       "Strong Types",
+                                       DiagnosticSeverity.Error, true),
+                                       attr.ArgumentList.Arguments[0].GetLocation());
+
+                _sourceProductionContext.ReportDiagnostic(diagnostic);
+                continue;
+            }
+
+            if (!typeDeclaration.Modifiers.Any(td => td.Text == "partial"))
+            {
+                Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0003",
+                                       "Not Supported",
+                                       "Types must be defined partial",
                                        "Strong Types",
                                        DiagnosticSeverity.Error, true),
                                        attr.ArgumentList.Arguments[0].GetLocation());

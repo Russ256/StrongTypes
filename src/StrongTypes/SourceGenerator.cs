@@ -75,7 +75,9 @@ public class SourceGenerator
 
                             public int CompareTo({{typeToGenerate.Name}} other) => _value.CompareTo(other._value);
 
+                            {{GenerateHash()}}
                             {{GenerateEquals(typeToGenerate)}}
+                            {{GenerateEqualOperators(typeToGenerate)}}
 
                             public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
                             {
@@ -96,7 +98,7 @@ public class SourceGenerator
         return $"{typeToGenerate.Modifiers}{(typeToGenerate.IsRecord ? " record " : " ")}{typeToGenerate.ClassOrStruct} {typeToGenerate.Name} : IComparable<{typeToGenerate.Name}>, IParsable<{typeToGenerate.Name}>";
     }
 
-    private static string GenerateEquals(TypeToGenerate typeToGenerate)
+    private static string GenerateEqualOperators(TypeToGenerate typeToGenerate)
     {
         if (typeToGenerate.IsRecord)
         {
@@ -106,14 +108,37 @@ public class SourceGenerator
         string code = $$"""
                         public static bool operator == ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b) => a._value == b._value;
                         public static bool operator != ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b) => a._value != b._value;
-                        public override int GetHashCode() => _value.GetHashCode();
-                        public override bool Equals([NotNullWhen(true)] object? o)
-                        {
-                            if (o is {{typeToGenerate.Name}} other)
-                                return _value == other._value;
+                        """;
 
-                            return false;
-                        }
+        return code;
+    }
+
+
+
+    private static string GenerateEquals(TypeToGenerate typeToGenerate)
+    {
+        if (typeToGenerate.IsRecord)
+        {
+            return $$"""
+                     public bool Equals([NotNullWhen(true)] {{typeToGenerate.Name}} other) => _value == other._value;
+                     """;
+        }
+
+        return $$"""
+                 public override bool Equals([NotNullWhen(true)] object? o)
+                 {
+                     if (o is {{typeToGenerate.Name}} other)
+                         return _value == other._value;
+
+                     return false;
+                 }
+                 """;
+    }
+
+    private static string GenerateHash()
+    {
+        string code = $$"""
+                        public override int GetHashCode() => _value.GetHashCode();
                         """;
 
         return code;
@@ -184,7 +209,9 @@ public class SourceGenerator
 
                     public int CompareTo({{typeToGenerate.Name}} other) => _value.CompareTo(other._value);
 
+                    {{GenerateHash()}}
                     {{GenerateEquals(typeToGenerate)}}
+                    {{GenerateEqualOperators(typeToGenerate)}}
 
                     public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
                     {
@@ -228,7 +255,9 @@ public class SourceGenerator
 
                     public override string ToString() => _value.ToString();
 
+                    {{GenerateHash()}}
                     {{GenerateEquals(typeToGenerate)}}
+                    {{GenerateEqualOperators(typeToGenerate)}}
                                 
                     public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
                     {

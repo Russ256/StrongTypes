@@ -5,6 +5,7 @@ public class Attributes
     public const string Source = """
                                         namespace StrongTypes;
 
+                                        using System;
                                         using System.Diagnostics;
 
                                         [Conditional("Include_attibutes")] // So not included in compiled application  
