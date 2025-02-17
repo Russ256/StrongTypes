@@ -122,6 +122,19 @@ public class Generator : IIncrementalGenerator
                 continue;
             }
 
+            if (!typeDeclaration.Modifiers.Any(td => td.Text == "partial"))
+            {
+                Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0003",
+                                       "Not Supported",
+                                       "Types must be defined partial",
+                                       "Strong Types",
+                                       DiagnosticSeverity.Error, true),
+                                       attr.ArgumentList.Arguments[0].GetLocation());
+
+                _sourceProductionContext.ReportDiagnostic(diagnostic);
+                continue;
+            }
+
             typesToGenerate.Add(new TypeToGenerate()
             {
                 DeclarationSyntax = typeDeclaration,
