@@ -44,7 +44,33 @@ public class UriTests
     }
 
     [TestMethod]
-    public void Equal_Operator_With_Differnet_Uri_Should_Be_False()
+    public void Equals_Null_Should_Be_False()
+    {
+        // Arrange
+        Uri uri1 = new("https://www.untitest1.com");
+
+        // Act
+        bool result = uri1.Equals(null);
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void Equals_Operator_Null_Should_Be_False()
+    {
+        // Arrange
+        Uri uri1 = new("https://www.untitest1.com");
+
+        // Act
+        bool result = uri1 == null;
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void Equals_Operator_With_Differnet_Uri_Should_Be_False()
     {
         // Arrange
         TestUriClass sut1 = new("https://www.untitest1.com");
@@ -58,7 +84,7 @@ public class UriTests
     }
 
     [TestMethod]
-    public void Equal_Operator_With_Same_Uri_Should_Be_True()
+    public void Equals_Operator_With_Same_Uri_Should_Be_True()
     {
         // Arrange
         TestUriClass sut1 = new("https://www.untitest.com");
@@ -70,7 +96,34 @@ public class UriTests
         // Assert
         result.Should().BeTrue();
     }
+    [TestMethod]
+    public void Equals_With_Different_Uri_Should_Be_False()
+    {
+        // Arrange
+        Uri uri1 = new("https://www.untitest1.com");
+        Uri uri2 = new("https://www.untitest2.com");
 
+        // Act
+        bool result = uri1.Equals(uri2);
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void Equals_With_Same_Uri_Should_Be_True()
+    {
+        // Arrange
+        string uri = "https://www.untitest.com";
+        Uri uri1 = new(uri);
+        Uri uri2 = new(uri);
+
+        // Act
+        bool result = uri1.Equals(uri2);
+
+        // Assert
+        result.Should().BeTrue();
+    }
     [TestMethod]
     public void Json_Deserialize_Should_Succeed()
     {

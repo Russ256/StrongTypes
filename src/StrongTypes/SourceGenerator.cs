@@ -245,7 +245,13 @@ public class SourceGenerator
                     private readonly {{typeToGenerate.BaseType}} _value;
                     public {{typeToGenerate.BaseType}} Value => _value;
 
-                    public {{typeToGenerate.Name}}({{typeToGenerate.BaseType}} value) => _value = value;
+                    public {{typeToGenerate.Name}}({{typeToGenerate.BaseType}} value)
+                    {
+                        ArgumentNullException.ThrowIfNull(value, nameof(value));
+                
+                        _value = value;
+                    }
+
                     public {{typeToGenerate.Name}}(string value)
                     {
                         ArgumentNullException.ThrowIfNull(value, nameof(value));
