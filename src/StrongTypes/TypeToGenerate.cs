@@ -22,6 +22,7 @@ public struct TypeToGenerate
     }
 
     public TypeDeclarationSyntax DeclarationSyntax { get; set; }
+    public readonly bool IsClass => DeclarationSyntax is ClassDeclarationSyntax;
     public readonly bool IsRecord => DeclarationSyntax is RecordDeclarationSyntax;
     public readonly string Modifiers => DeclarationSyntax.Modifiers.ToString();
     public readonly string Name => DeclarationSyntax.Identifier.Text;
