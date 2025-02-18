@@ -22,8 +22,43 @@ public static class SourceGenerator
             return string.Empty;
         }
 
+        if (typeToGenerate.IsClass)
+        {
+            return $$"""
+                public static bool operator == ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b) 
+                {
+                    if (a is null && b is null)
+                    {
+                        return true;
+                    }
+                
+                    if (a is null || b is null)
+                    {
+                        return false;
+                    }
+
+                    return a._value == b._value;
+                }
+
+                public static bool operator != ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b) 
+                {
+                    if (a is null && b is null)
+                    {
+                        return false;
+                    }
+
+                    if (a is null || b is null)
+                    {
+                        return true;
+                    }
+                
+                    return a._value != b._value;
+                }
+                """;
+        }
+
         return $$"""
-                public static bool operator == ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b) => a._value == b._value;
+                public static bool operator == ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b) => a._value == b!._value;
                 public static bool operator != ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b) => a._value != b._value;
                 """;
     }
