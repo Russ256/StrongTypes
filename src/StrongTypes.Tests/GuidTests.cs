@@ -125,7 +125,7 @@ public class GuidTests
     }
 
     [TestMethod]
-    public void Recrod_Equals_Operator_When_Same_Returns_true()
+    public void Record_Equals_Operator_When_Same_Returns_true()
     {
         // Arrange
         Guid guid = Guid.NewGuid();
