@@ -18,15 +18,8 @@ public class SourceGenerator
     private static string GenerateInt(TypeToGenerate typeToGenerate)
     {
         string code = $$"""
-                        // Auto-generated code
-                        #nullable enable
-
-                        namespace {{typeToGenerate.Namespace}};
-
-                        using System.Diagnostics.CodeAnalysis;
-                        using System.Text.Json.Serialization;
-                        using System.Text.Json;
-
+                        {{GenerateHeader(typeToGenerate)}}
+                        
                         [JsonConverter(typeof(JsonConverter))]
                         {{GenerateType(typeToGenerate)}}
                         {
@@ -105,15 +98,11 @@ public class SourceGenerator
             return string.Empty;
         }
 
-        string code = $$"""
-                        public static bool operator == ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b) => a._value == b._value;
-                        public static bool operator != ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b) => a._value != b._value;
-                        """;
-
-        return code;
+        return $$"""
+                public static bool operator == ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b) => a._value == b._value;
+                public static bool operator != ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b) => a._value != b._value;
+                """;
     }
-
-
 
     private static string GenerateEquals(TypeToGenerate typeToGenerate)
     {
@@ -137,24 +126,29 @@ public class SourceGenerator
 
     private static string GenerateHash()
     {
-        string code = $$"""
-                        public override int GetHashCode() => _value.GetHashCode();
-                        """;
+        return $$"""
+                public override int GetHashCode() => _value.GetHashCode();
+                """;
+    }
 
-        return code;
+    private static string GenerateHeader(TypeToGenerate typeToGenerate)
+    {
+        return $$"""
+                // Auto-generated code
+                #nullable enable
+                        
+                namespace {{typeToGenerate.Namespace}};
+                        
+                using System.Diagnostics.CodeAnalysis;
+                using System.Text.Json.Serialization;
+                using System.Text.Json;                        
+                """;
     }
 
     private static string GenerateGuid(TypeToGenerate typeToGenerate)
     {
         string code = $$"""
-                // Auto-generated code
-                #nullable enable
-
-                namespace {{typeToGenerate.Namespace}};
-
-                using System.Diagnostics.CodeAnalysis;
-                using System.Text.Json.Serialization;
-                using System.Text.Json;
+                {{GenerateHeader(typeToGenerate)}}
 
                 [JsonConverter(typeof(JsonConverter))]
                 {{GenerateType(typeToGenerate)}}
@@ -169,6 +163,7 @@ public class SourceGenerator
 
                         if (!Guid.TryParse(value, out Guid guid))
                             throw new ArgumentException($"{value} is not a valid {{typeToGenerate.Name}}");
+
                         _value = guid;
                     }
 
@@ -230,15 +225,8 @@ public class SourceGenerator
     private static string GenerateUri(TypeToGenerate typeToGenerate)
     {
         string code = $$"""
-                // Auto-generated code
-                #nullable enable
-
-                namespace {{typeToGenerate.Namespace}};
-
-                using System.Diagnostics.CodeAnalysis;
-                using System.Text.Json.Serialization;
-                using System.Text.Json;
-
+                {{GenerateHeader(typeToGenerate)}}
+                
                 [JsonConverter(typeof(JsonConverter))]
                 {{typeToGenerate.Modifiers}} class {{typeToGenerate.Name}}
                 {
