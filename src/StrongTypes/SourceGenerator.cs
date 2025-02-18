@@ -2,7 +2,7 @@
 
 using System;
 
-public class SourceGenerator
+public static class SourceGenerator
 {
     public static string Generate(TypeToGenerate typeToGenerate)
     {
@@ -13,82 +13,6 @@ public class SourceGenerator
             "int" => GenerateInt(typeToGenerate),
             _ => throw new ArgumentException($"Type {typeToGenerate.BaseType} is not supported"),
         };
-    }
-
-    private static string GenerateInt(TypeToGenerate typeToGenerate)
-    {
-        string code = $$"""
-                        {{GenerateHeader(typeToGenerate)}}
-                        
-                        [JsonConverter(typeof(JsonConverter))]
-                        {{GenerateType(typeToGenerate)}}
-                        {
-                            private readonly {{typeToGenerate.BaseType}} _value;
-                            public {{typeToGenerate.BaseType}} Value => _value;
-
-                            public {{typeToGenerate.Name}}({{typeToGenerate.BaseType}} value) => _value = value;
-                            public {{typeToGenerate.Name}}(string value)
-                            {
-                                if (!{{typeToGenerate.BaseType}}.TryParse(value, out {{typeToGenerate.BaseType}} parsedValue))
-                                    throw new ArgumentException($"{value} is not a valid {{typeToGenerate.Name}}");
-                                _value = parsedValue;
-                            }
-
-                            public static {{typeToGenerate.Name}} Parse(string s) => Parse(s, provider: null);
-                            public static {{typeToGenerate.Name}} Parse(string s, IFormatProvider? provider)
-                            {
-                                if (TryParse(s, provider, out {{typeToGenerate.Name}} result))
-                                {
-                                    return result;
-                                }
-
-                                throw new FormatException($"'{s}' is not a valid {{typeToGenerate.Name}}.");
-                            }
-
-                            public static bool TryParse(string? s, out {{typeToGenerate.Name}} result) => TryParse(s, provider: null, out result);
-                            public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out {{typeToGenerate.Name}} result)
-                            {
-                                result = default;
-
-                                if (string.IsNullOrEmpty(s))
-                                {
-                                    return false;
-                                }
-
-                                if ({{typeToGenerate.BaseType}}.TryParse(s, out {{typeToGenerate.BaseType}} parsedValue))
-                                {
-                                    result = new {{typeToGenerate.Name}}(parsedValue);
-                                    return true;
-                                }
-
-                                return false;
-                            }
-
-                            public override string ToString() => _value.ToString();
-
-                            public int CompareTo({{typeToGenerate.Name}} other) => _value.CompareTo(other._value);
-
-                            {{GenerateHash()}}
-                            {{GenerateEquals(typeToGenerate)}}
-                            {{GenerateEqualOperators(typeToGenerate)}}
-
-                            public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
-                            {
-                                public override {{typeToGenerate.Name}} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-                                    => new {{typeToGenerate.Name}}(reader.GetInt32());
-
-                                public override void Write(Utf8JsonWriter writer, {{typeToGenerate.Name}} value, JsonSerializerOptions options)
-                                    => writer.WriteNumberValue(value._value);
-                            }
-                        }
-                        """;
-
-        return code;
-    }
-
-    private static string GenerateType(TypeToGenerate typeToGenerate)
-    {
-        return $"{typeToGenerate.Modifiers}{(typeToGenerate.IsRecord ? " record " : " ")}{typeToGenerate.ClassOrStruct} {typeToGenerate.Name} : IComparable<{typeToGenerate.Name}>, IParsable<{typeToGenerate.Name}>";
     }
 
     private static string GenerateEqualOperators(TypeToGenerate typeToGenerate)
@@ -122,27 +46,6 @@ public class SourceGenerator
                      return false;
                  }
                  """;
-    }
-
-    private static string GenerateHash()
-    {
-        return $$"""
-                public override int GetHashCode() => _value.GetHashCode();
-                """;
-    }
-
-    private static string GenerateHeader(TypeToGenerate typeToGenerate)
-    {
-        return $$"""
-                // Auto-generated code
-                #nullable enable
-                        
-                namespace {{typeToGenerate.Namespace}};
-                        
-                using System.Diagnostics.CodeAnalysis;
-                using System.Text.Json.Serialization;
-                using System.Text.Json;                        
-                """;
     }
 
     private static string GenerateGuid(TypeToGenerate typeToGenerate)
@@ -222,11 +125,108 @@ public class SourceGenerator
         return code;
     }
 
+    private static string GenerateHash()
+    {
+        return $$"""
+                public override int GetHashCode() => _value.GetHashCode();
+                """;
+    }
+
+    private static string GenerateHeader(TypeToGenerate typeToGenerate)
+    {
+        return $$"""
+                // Auto-generated code
+                #nullable enable
+
+                namespace {{typeToGenerate.Namespace}};
+
+                using System.Diagnostics.CodeAnalysis;
+                using System.Text.Json.Serialization;
+                using System.Text.Json;
+                """;
+    }
+
+    private static string GenerateInt(TypeToGenerate typeToGenerate)
+    {
+        string code = $$"""
+                        {{GenerateHeader(typeToGenerate)}}
+
+                        [JsonConverter(typeof(JsonConverter))]
+                        {{GenerateType(typeToGenerate)}}
+                        {
+                            private readonly {{typeToGenerate.BaseType}} _value;
+                            public {{typeToGenerate.BaseType}} Value => _value;
+
+                            public {{typeToGenerate.Name}}({{typeToGenerate.BaseType}} value) => _value = value;
+                            public {{typeToGenerate.Name}}(string value)
+                            {
+                                if (!{{typeToGenerate.BaseType}}.TryParse(value, out {{typeToGenerate.BaseType}} parsedValue))
+                                    throw new ArgumentException($"{value} is not a valid {{typeToGenerate.Name}}");
+                                _value = parsedValue;
+                            }
+
+                            public static {{typeToGenerate.Name}} Parse(string s) => Parse(s, provider: null);
+                            public static {{typeToGenerate.Name}} Parse(string s, IFormatProvider? provider)
+                            {
+                                if (TryParse(s, provider, out {{typeToGenerate.Name}} result))
+                                {
+                                    return result;
+                                }
+
+                                throw new FormatException($"'{s}' is not a valid {{typeToGenerate.Name}}.");
+                            }
+
+                            public static bool TryParse(string? s, out {{typeToGenerate.Name}} result) => TryParse(s, provider: null, out result);
+                            public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out {{typeToGenerate.Name}} result)
+                            {
+                                result = default;
+
+                                if (string.IsNullOrEmpty(s))
+                                {
+                                    return false;
+                                }
+
+                                if ({{typeToGenerate.BaseType}}.TryParse(s, out {{typeToGenerate.BaseType}} parsedValue))
+                                {
+                                    result = new {{typeToGenerate.Name}}(parsedValue);
+                                    return true;
+                                }
+
+                                return false;
+                            }
+
+                            public override string ToString() => _value.ToString();
+
+                            public int CompareTo({{typeToGenerate.Name}} other) => _value.CompareTo(other._value);
+
+                            {{GenerateHash()}}
+                            {{GenerateEquals(typeToGenerate)}}
+                            {{GenerateEqualOperators(typeToGenerate)}}
+
+                            public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
+                            {
+                                public override {{typeToGenerate.Name}} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+                                    => new {{typeToGenerate.Name}}(reader.GetInt32());
+
+                                public override void Write(Utf8JsonWriter writer, {{typeToGenerate.Name}} value, JsonSerializerOptions options)
+                                    => writer.WriteNumberValue(value._value);
+                            }
+                        }
+                        """;
+
+        return code;
+    }
+
+    private static string GenerateType(TypeToGenerate typeToGenerate)
+    {
+        return $"{typeToGenerate.Modifiers}{(typeToGenerate.IsRecord ? " record " : " ")}{typeToGenerate.ClassOrStruct} {typeToGenerate.Name} : IComparable<{typeToGenerate.Name}>, IParsable<{typeToGenerate.Name}>";
+    }
+
     private static string GenerateUri(TypeToGenerate typeToGenerate)
     {
         string code = $$"""
                 {{GenerateHeader(typeToGenerate)}}
-                
+
                 [JsonConverter(typeof(JsonConverter))]
                 {{typeToGenerate.Modifiers}} class {{typeToGenerate.Name}}
                 {
@@ -236,7 +236,7 @@ public class SourceGenerator
                     public {{typeToGenerate.Name}}({{typeToGenerate.BaseType}} value)
                     {
                         ArgumentNullException.ThrowIfNull(value, nameof(value));
-                
+
                         _value = value;
                     }
 
@@ -252,7 +252,7 @@ public class SourceGenerator
                     {{GenerateHash()}}
                     {{GenerateEquals(typeToGenerate)}}
                     {{GenerateEqualOperators(typeToGenerate)}}
-                                
+
                     public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
                     {
                         public override {{typeToGenerate.Name}} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
