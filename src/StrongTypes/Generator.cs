@@ -93,42 +93,19 @@ public class Generator : IIncrementalGenerator
         {
             ct.ThrowIfCancellationRequested();
 
+            TypeToGenerate typeToGenerate = new()
+            {
+                DeclarationSyntax = typeDeclaration,
+                Namespace = compilation.Namespace(typeDeclaration),
+            };
+
             // Identify the type to generate
             AttributeSyntax attr = compilation.GetAttribute(typeDeclaration, _attributeName);
 
             // Get type from attribute
-            TypeOfExpressionSyntax expression = attr.ArgumentList.Arguments[0].Expression as TypeOfExpressionSyntax;
-            SemanticModel sm = compilation.GetSemanticModel(typeDeclaration.SyntaxTree);
-            ITypeSymbol typeSymbol = sm.GetTypeInfo(expression.Type).Type;
-            string type = typeSymbol.ToString();
-            if (type == "System.Int32") type = "int";
+            ExpressionSyntax baseTypeExpression = attr.ArgumentList.Arguments[0].Expression;
 
-            if (!_supportedTypes.Contains(type))
-            {
-                Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0001",
-                                       "Not Supported",
-                                       "Type not supported",
-                                       "Strong Types",
-                                       DiagnosticSeverity.Error, true),
-                                       attr.ArgumentList.Arguments[0].GetLocation());
-
-                _sourceProductionContext.ReportDiagnostic(diagnostic);
-                continue;
-            }
-
-            if (type == "System.Uri" && typeDeclaration is not ClassDeclarationSyntax)
-            {
-                Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0002",
-                                       "Not Supported",
-                                       "Only class supported for Uri type",
-                                       "Strong Types",
-                                       DiagnosticSeverity.Error, true),
-                                       attr.ArgumentList.Arguments[0].GetLocation());
-
-                _sourceProductionContext.ReportDiagnostic(diagnostic);
-                continue;
-            }
-
+            // Partial type check
             if (!typeDeclaration.Modifiers.Any(td => td.Text == "partial"))
             {
                 Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0003",
@@ -142,23 +119,92 @@ public class Generator : IIncrementalGenerator
                 continue;
             }
 
-            // Get length from attributes
-            int maxLength = 0;
-            if (type == "string")
+            // Identify type.
+            string baseType = baseTypeExpression.ToFullString();
+            if (baseType == "BaseType.Integer")
             {
-                if (attr.ArgumentList.Arguments.Count > 1)
+                typeToGenerate.BaseTypeName = "int";
+            }
+            else if (baseType == "BaseType.Guid")
+            {
+                typeToGenerate.BaseTypeName = "System.Guid";
+            }
+            else if (baseType == "BaseType.Uri")
+            {
+                if (typeDeclaration is not ClassDeclarationSyntax)
                 {
-                    var mlExpression = attr.ArgumentList.Arguments[1].Expression;
-                    maxLength = int.Parse(mlExpression.ToString());
+                    Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0002",
+                                           "Not Supported",
+                                           "Only class supported for Uri type",
+                                           "Strong Types",
+                                           DiagnosticSeverity.Error, true),
+                                           attr.ArgumentList.Arguments[0].GetLocation());
+
+                    _sourceProductionContext.ReportDiagnostic(diagnostic);
+                    continue;
+                }
+                else
+                {
+                    typeToGenerate.BaseTypeName = "System.Uri";
                 }
             }
-            typesToGenerate.Add(new TypeToGenerate()
+            else if (baseType == "BaseType.String")
             {
-                DeclarationSyntax = typeDeclaration,
-                Namespace = compilation.Namespace(typeDeclaration),
-                BaseType = type,
-                MaxLength = maxLength,
-            });
+                typeToGenerate.BaseTypeName = "string";
+
+                if (attr.ArgumentList.Arguments.Count > 1)
+                {
+                    ExpressionSyntax mlExpression = attr.ArgumentList.Arguments[1].Expression;
+                    typeToGenerate.MaxLength = int.Parse(mlExpression.ToString());
+                }
+            }
+
+
+            //SemanticModel sm = compilation.GetSemanticModel(typeDeclaration.SyntaxTree);
+            //ITypeSymbol typeSymbol = sm.GetTypeInfo(expression.Type).Type;
+            //string type = typeSymbol.ToString();
+            //if (type == "System.Int32") type = "int";
+
+            //if (!_supportedTypes.Contains(type))
+            //{
+            //    Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0001",
+            //                           "Not Supported",
+            //                           "Type not supported",
+            //                           "Strong Types",
+            //                           DiagnosticSeverity.Error, true),
+            //                           attr.ArgumentList.Arguments[0].GetLocation());
+
+            //    _sourceProductionContext.ReportDiagnostic(diagnostic);
+            //    continue;
+            //}
+
+            //if (type == "System.Uri" && typeDeclaration is not ClassDeclarationSyntax)
+            //{
+            //    Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0002",
+            //                           "Not Supported",
+            //                           "Only class supported for Uri type",
+            //                           "Strong Types",
+            //                           DiagnosticSeverity.Error, true),
+            //                           attr.ArgumentList.Arguments[0].GetLocation());
+
+            //    _sourceProductionContext.ReportDiagnostic(diagnostic);
+            //    continue;
+            //}
+
+            //if (!typeDeclaration.Modifiers.Any(td => td.Text == "partial"))
+            //{
+            //    Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0003",
+            //                           "Not Supported",
+            //                           "Types must be defined partial",
+            //                           "Strong Types",
+            //                           DiagnosticSeverity.Error, true),
+            //                           attr.ArgumentList.Arguments[0].GetLocation());
+
+            //    _sourceProductionContext.ReportDiagnostic(diagnostic);
+            //    continue;
+            //}
+
+            typesToGenerate.Add(typeToGenerate);
         }
 
         return typesToGenerate;
@@ -169,5 +215,20 @@ public class Generator : IIncrementalGenerator
         return node is ClassDeclarationSyntax m && m.AttributeLists.Count > 0
             || node is RecordDeclarationSyntax r && r.AttributeLists.Count > 0
             || node is StructDeclarationSyntax s && s.AttributeLists.Count > 0;
+    }
+
+    public static AttributeArgumentSyntax GetArgumentByName(AttributeArgumentListSyntax argumentList, string name)
+    {
+        if (argumentList == null) return null;
+
+        foreach (var arg in argumentList.Arguments)
+        {
+            if (arg.NameEquals != null &&
+                string.Equals(arg.NameEquals.Name.Identifier.ValueText, name, StringComparison.OrdinalIgnoreCase))
+            {
+                return arg;
+            }
+        }
+        return null;
     }
 }

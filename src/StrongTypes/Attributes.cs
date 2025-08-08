@@ -12,19 +12,29 @@ public class Attributes
                                     [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = false)]
                                     internal class StrongTypeAttribute : System.Attribute
                                     {
-                                        internal StrongTypeAttribute(Type baseType, int maxLength)
+                                        internal StrongTypeAttribute(BaseType baseType, int maxLength)
                                              : this(baseType)
                                         {
                                             MaxLength = maxLength;
                                         }
 
-                                        internal StrongTypeAttribute(Type baseType)
+                                        internal StrongTypeAttribute(BaseType baseType)
                                         {
                                             BaseType = baseType;
                                         }
                                     
-                                        internal Type BaseType { get; }
+                                        internal BaseType BaseType { get; }
                                         internal int MaxLength { get; }
                                     }
+
+                                    public enum BaseType
+                                    {
+                                        Integer = 0,
+                                        Guid = 1,
+                                        Uri = 2,
+                                        String = 3
+                                    }
+
+                                    
                                     """;
 }

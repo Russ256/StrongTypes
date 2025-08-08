@@ -3,12 +3,12 @@ namespace StrongTypes.Tests;
 using FluentAssertions;
 using System.Text.Json;
 
-[StrongType(typeof(string))]
+[StrongType(BaseType.String)]
 public partial class TestString
 {
 }
 
-[StrongType(typeof(string), 3)]
+[StrongType(BaseType.String, 3)]
 public partial class TestStringLength
 {
 }

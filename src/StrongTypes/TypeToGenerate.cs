@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 public struct TypeToGenerate
 {
-    public string BaseType { get; set; }
+    public string BaseTypeName { get; set; }
 
     public readonly string ClassOrStruct
     {

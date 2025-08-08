@@ -3,12 +3,12 @@ namespace StrongTypes.Tests;
 using FluentAssertions;
 using System.Text.Json;
 
-[StrongType(typeof(Uri))]
+[StrongType(BaseType.Uri)]
 public partial class TestUriClass
 {
 }
 
-//[StrongType(typeof(Uri))] // For checking compiler error
+//[StrongType(BaseType.Uri)] // For checking compiler error
 //public partial struct TestUriStruct
 //{
 //}

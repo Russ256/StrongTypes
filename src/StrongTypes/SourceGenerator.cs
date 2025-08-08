@@ -6,13 +6,13 @@ public static class SourceGenerator
 {
     public static string Generate(TypeToGenerate typeToGenerate)
     {
-        return typeToGenerate.BaseType switch
+        return typeToGenerate.BaseTypeName switch
         {
             "System.Uri" => GenerateUri(typeToGenerate),
             "System.Guid" => GenerateGuid(typeToGenerate),
             "int" => GenerateInt(typeToGenerate),
             "string" => GenerateString(typeToGenerate),
-            _ => throw new ArgumentException($"Type {typeToGenerate.BaseType} is not supported"),
+            _ => null,
         };
     }
 
@@ -92,10 +92,10 @@ public static class SourceGenerator
                 [JsonConverter(typeof(JsonConverter))]
                 {{GenerateType(typeToGenerate)}}
                 {
-                    private readonly {{typeToGenerate.BaseType}} _value;
-                    public {{typeToGenerate.BaseType}} Value => _value;
+                    private readonly {{typeToGenerate.BaseTypeName}} _value;
+                    public {{typeToGenerate.BaseTypeName}} Value => _value;
 
-                    public {{typeToGenerate.Name}}({{typeToGenerate.BaseType}} value) => _value = value;
+                    public {{typeToGenerate.Name}}({{typeToGenerate.BaseTypeName}} value) => _value = value;
                     public {{typeToGenerate.Name}}(string value)
                     {
                         ArgumentNullException.ThrowIfNull(value, nameof(value));
@@ -190,13 +190,13 @@ public static class SourceGenerator
                         [JsonConverter(typeof(JsonConverter))]
                         {{GenerateType(typeToGenerate)}}
                         {
-                            private readonly {{typeToGenerate.BaseType}} _value;
-                            public {{typeToGenerate.BaseType}} Value => _value;
+                            private readonly {{typeToGenerate.BaseTypeName}} _value;
+                            public {{typeToGenerate.BaseTypeName}} Value => _value;
 
-                            public {{typeToGenerate.Name}}({{typeToGenerate.BaseType}} value) => _value = value;
+                            public {{typeToGenerate.Name}}({{typeToGenerate.BaseTypeName}} value) => _value = value;
                             public {{typeToGenerate.Name}}(string value)
                             {
-                                if (!{{typeToGenerate.BaseType}}.TryParse(value, out {{typeToGenerate.BaseType}} parsedValue))
+                                if (!{{typeToGenerate.BaseTypeName}}.TryParse(value, out {{typeToGenerate.BaseTypeName}} parsedValue))
                                     throw new ArgumentException($"{value} is not a valid {{typeToGenerate.Name}}");
                                 _value = parsedValue;
                             }
@@ -222,7 +222,7 @@ public static class SourceGenerator
                                     return false;
                                 }
 
-                                if ({{typeToGenerate.BaseType}}.TryParse(s, out {{typeToGenerate.BaseType}} parsedValue))
+                                if ({{typeToGenerate.BaseTypeName}}.TryParse(s, out {{typeToGenerate.BaseTypeName}} parsedValue))
                                 {
                                     result = new {{typeToGenerate.Name}}(parsedValue);
                                     return true;
@@ -266,10 +266,10 @@ public static class SourceGenerator
                 [JsonConverter(typeof(JsonConverter))]
                 {{typeToGenerate.Modifiers}} class {{typeToGenerate.Name}}
                 {
-                    private readonly {{typeToGenerate.BaseType}} _value;
-                    public {{typeToGenerate.BaseType}} Value => _value;
+                    private readonly {{typeToGenerate.BaseTypeName}} _value;
+                    public {{typeToGenerate.BaseTypeName}} Value => _value;
 
-                    public {{typeToGenerate.Name}}({{typeToGenerate.BaseType}} value)
+                    public {{typeToGenerate.Name}}({{typeToGenerate.BaseTypeName}} value)
                     {
                         ArgumentNullException.ThrowIfNull(value, nameof(value));
 
@@ -311,10 +311,10 @@ public static class SourceGenerator
                 [JsonConverter(typeof(JsonConverter))]
                 {{typeToGenerate.Modifiers}} class {{typeToGenerate.Name}}
                 {
-                    private readonly {{typeToGenerate.BaseType}} _value;
-                    public {{typeToGenerate.BaseType}} Value => _value;
+                    private readonly {{typeToGenerate.BaseTypeName}} _value;
+                    public {{typeToGenerate.BaseTypeName}} Value => _value;
 
-                    public {{typeToGenerate.Name}}({{typeToGenerate.BaseType}} value)
+                    public {{typeToGenerate.Name}}({{typeToGenerate.BaseTypeName}} value)
                     {
                         ArgumentNullException.ThrowIfNull(value, nameof(value));
 
