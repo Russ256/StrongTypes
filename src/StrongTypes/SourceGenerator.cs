@@ -11,6 +11,7 @@ public static class SourceGenerator
             "System.Uri" => GenerateUri(typeToGenerate),
             "System.Guid" => GenerateGuid(typeToGenerate),
             "int" => GenerateInt(typeToGenerate),
+            "string" => GenerateString(typeToGenerate),
             _ => throw new ArgumentException($"Type {typeToGenerate.BaseType} is not supported"),
         };
     }
@@ -287,6 +288,82 @@ public static class SourceGenerator
                     {{GenerateHash()}}
                     {{GenerateEquals(typeToGenerate)}}
                     {{GenerateEqualOperators(typeToGenerate)}}
+
+                    public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
+                    {
+                        public override {{typeToGenerate.Name}} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+                            => new {{typeToGenerate.Name}}(reader.GetString()!);
+
+                        public override void Write(Utf8JsonWriter writer, {{typeToGenerate.Name}} value, JsonSerializerOptions options)
+                            => writer.WriteStringValue(value._value.ToString());
+                    }
+                }
+                """;
+
+        return code;
+    }
+
+    private static string GenerateString(TypeToGenerate typeToGenerate)
+    {
+        string code = $$"""
+                {{GenerateHeader(typeToGenerate)}}
+
+                [JsonConverter(typeof(JsonConverter))]
+                {{typeToGenerate.Modifiers}} class {{typeToGenerate.Name}}
+                {
+                    private readonly {{typeToGenerate.BaseType}} _value;
+                    public {{typeToGenerate.BaseType}} Value => _value;
+
+                    public {{typeToGenerate.Name}}({{typeToGenerate.BaseType}} value)
+                    {
+                        ArgumentNullException.ThrowIfNull(value, nameof(value));
+
+                        // TODO: max length check
+                
+                        _value = value;
+                    }
+
+                    public static implicit operator {{typeToGenerate.Name}}(string s)
+                    {
+                        return new {{typeToGenerate.Name}}(s);
+                    }                   
+                
+                    public override string ToString() => _value.ToString();
+
+                    public static bool operator ==({{typeToGenerate.Name}} left, string right)
+                    {
+                        if (left.Value == right)
+                            return true;
+
+                        return false;
+                    }
+
+                    public static bool operator ==(string left, {{typeToGenerate.Name}} right)
+                    {
+                        if (left == right.Value)
+                            return true;
+                
+                        return false;
+                    }
+                
+                    public static bool operator !=({{typeToGenerate.Name}} left, string right)
+                    {
+                        if (left.Value != right)
+                            return true;
+
+                        return false;
+                    }
+
+                    public static bool operator !=(string left, {{typeToGenerate.Name}} right)
+                    {
+                        if (left != right.Value)
+                            return true;
+                
+                        return false;
+                    }
+                
+
+                    {{GenerateHash()}}
 
                     public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
                     {

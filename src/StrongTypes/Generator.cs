@@ -13,7 +13,7 @@ using System.Threading;
 [Generator(LanguageNames.CSharp)]
 public class Generator : IIncrementalGenerator
 {
-    private static readonly string[] _supportedTypes = ["int", "System.Guid", "System.Uri"];
+    private static readonly string[] _supportedTypes = ["int", "System.Guid", "System.Uri", "string"];
     private static SourceProductionContext _sourceProductionContext;
     internal const string _namespace = "StrongTypes";
     internal const string _attributeName = "StrongType";
