@@ -318,7 +318,7 @@ public static class SourceGenerator
                     {
                         ArgumentNullException.ThrowIfNull(value, nameof(value));
 
-                        // TODO: max length check
+                        {{GenerateStringLengthValidation(typeToGenerate)}}
                 
                         _value = value;
                     }
@@ -401,4 +401,22 @@ public static class SourceGenerator
 
         return code;
     }
+
+    private static string GenerateStringLengthValidation(TypeToGenerate typeToGenerate)
+    {
+        if (typeToGenerate.MaxLength == 0)
+        {
+            return "";
+        }
+
+        return $$"""
+                        // Max length check
+                        if (value.Length > {{typeToGenerate.MaxLength}})
+                        {
+                            throw new StrongTypes.MaxLengthException(typeof({{typeToGenerate.Name}}), {{typeToGenerate.MaxLength}}, value.Length);
+                        }
+                
+                """;
+    }
+
 }

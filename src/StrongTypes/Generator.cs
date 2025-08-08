@@ -25,6 +25,11 @@ public class Generator : IIncrementalGenerator
                                                         "StrongTypes.Attributes.g.cs",
                                                         SourceText.From(Attributes.Source, Encoding.UTF8)));
 
+        // Add our exceptions to the project
+        context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
+                                                        "StrongTypes.Exceptions.g.cs",
+                                                        SourceText.From(Exceptions.Source, Encoding.UTF8)));
+
         // Create a simple filter for class
         IncrementalValuesProvider<TypeDeclarationSyntax> typesProvider = context.SyntaxProvider
             .CreateSyntaxProvider(
@@ -90,6 +95,8 @@ public class Generator : IIncrementalGenerator
 
             // Identify the type to generate
             AttributeSyntax attr = compilation.GetAttribute(typeDeclaration, _attributeName);
+
+            // Get type from attribute
             TypeOfExpressionSyntax expression = attr.ArgumentList.Arguments[0].Expression as TypeOfExpressionSyntax;
             SemanticModel sm = compilation.GetSemanticModel(typeDeclaration.SyntaxTree);
             ITypeSymbol typeSymbol = sm.GetTypeInfo(expression.Type).Type;
@@ -135,11 +142,22 @@ public class Generator : IIncrementalGenerator
                 continue;
             }
 
+            // Get length from attributes
+            int maxLength = 0;
+            if (type == "string")
+            {
+                if (attr.ArgumentList.Arguments.Count > 1)
+                {
+                    var mlExpression = attr.ArgumentList.Arguments[1].Expression;
+                    maxLength = int.Parse(mlExpression.ToString());
+                }
+            }
             typesToGenerate.Add(new TypeToGenerate()
             {
                 DeclarationSyntax = typeDeclaration,
                 Namespace = compilation.Namespace(typeDeclaration),
                 BaseType = type,
+                MaxLength = maxLength,
             });
         }
 

@@ -27,4 +27,5 @@ public struct TypeToGenerate
     public readonly string Modifiers => DeclarationSyntax.Modifiers.ToString();
     public readonly string Name => DeclarationSyntax.Identifier.Text;
     public string Namespace { get; set; }
+    public int MaxLength { get; set; }
 }

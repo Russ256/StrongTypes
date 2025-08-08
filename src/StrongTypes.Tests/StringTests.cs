@@ -8,6 +8,11 @@ public partial class TestString
 {
 }
 
+[StrongType(typeof(string), 3)]
+public partial class TestStringLength
+{
+}
+
 [TestClass]
 public class StringTests
 {
@@ -22,6 +27,17 @@ public class StringTests
 
         // Assert
         sut.Value.Should().Be(testString);
+    }
+
+    [TestMethod]
+    public void Constructor_MaxLength_Should_Throw_Exception()
+    {
+        // Arrange
+        string testString = "test";
+        Action action = () => _ = new TestStringLength(testString);
+
+        // Act
+        action.Should().Throw<MaxLengthException>().WithMessage($"String of length {testString.Length} exceeds the maximum of 3 for type TestStringLength");
     }
 
     [TestMethod]
