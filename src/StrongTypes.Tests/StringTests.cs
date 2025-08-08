@@ -40,6 +40,29 @@ public class StringTests
     [TestMethod]
     [DataRow("s1", "s1", true, DisplayName = "Equal")]
     [DataRow("s1", "!s1", false, DisplayName = "Not equal")]
+    public void Implicit_Equality(string left, string right, bool result)
+    {
+        // Arrange
+        TestString sut1 = left;
+        TestString sut2 = right;
+
+        // Act
+        bool testResult1 = sut1 == sut2;
+        bool testResult2 = sut1 != sut2;
+
+        bool testResult3 = sut2 == sut1;
+        bool testResult4 = sut2 != sut1;
+
+        // Assert
+        testResult1.Should().Be(result);
+        testResult2.Should().Be(!result);
+        testResult3.Should().Be(result);
+        testResult4.Should().Be(!result);
+    }
+
+    [TestMethod]
+    [DataRow("s1", "s1", true, DisplayName = "Equal")]
+    [DataRow("s1", "!s1", false, DisplayName = "Not equal")]
     public void Implicit_String_Equality(string left, string right, bool result)
     {
         // Arrange
@@ -60,44 +83,32 @@ public class StringTests
         testResult4.Should().Be(!result);
     }
 
-    //[TestMethod]
-    //public void Json_Deserialize_Should_Succeed()
-    //{
-    //    // Arrange
-    //    int value = 500;
-    //    string json = value.ToString();
+    [TestMethod]
+    public void Json_Deserialize_Should_Succeed()
+    {
+        // Arrange
+        string testString = "test";
+        string json = $"\"{testString}\"";
 
-    //    // Act
-    //    TestInt result = JsonSerializer.Deserialize<TestInt>(json);
+        // Act
+        TestString result = JsonSerializer.Deserialize<TestString>(json)!;
 
-    //    // Assert
-    //    result.Value.Should().Be(value);
-    //}
+        // Assert
+        result.Should().NotBeNull();
+        result.ToString().Should().Be(testString);
+    }
 
-    //[TestMethod]
-    //public void Json_Serialize_Should_Not_Include_Quotes()
-    //{
-    //    // Arrange
-    //    int value = 500;
-    //    TestInt sut = new(value);
+    [TestMethod]
+    public void Json_Serialize_Should_Include_Quotes()
+    {
+        // Arrange
+        string testString = "test";
+        TestString sut = testString;
 
-    //    // Act
-    //    string result = JsonSerializer.Serialize(sut);
+        // Act
+        string result = JsonSerializer.Serialize(sut);
 
-    //    // Assert
-    //    result.Should().Be(value.ToString());
-    //}
-
-    //[TestMethod]
-    //[DataRow("", DisplayName = "Empty")]
-    //[DataRow("1,000", DisplayName = "1,000")]
-    //[DataRow("0.1", DisplayName = "0.1")]
-    //public void String_Constructor_Should_Fail(string value)
-    //{
-    //    // Act
-    //    Action action = () => TestInt.Parse(value);
-
-    //    // Assert
-    //    action.Should().Throw<FormatException>().WithMessage($"'{value}' is not a valid TestInt.");
-    //}
+        // Assert
+        result.Should().Be($"\"{testString}\"");
+    }
 }

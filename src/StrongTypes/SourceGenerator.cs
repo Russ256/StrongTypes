@@ -338,6 +338,14 @@ public static class SourceGenerator
                         return false;
                     }
 
+                    public static bool operator ==({{typeToGenerate.Name}} left, {{typeToGenerate.Name}} right)
+                    {
+                        if (left.Value == right.Value)
+                            return true;
+                
+                        return false;
+                    }
+                
                     public static bool operator ==(string left, {{typeToGenerate.Name}} right)
                     {
                         if (left == right.Value)
@@ -362,8 +370,23 @@ public static class SourceGenerator
                         return false;
                     }
                 
-
+                    public static bool operator !=({{typeToGenerate.Name}} left, {{typeToGenerate.Name}} right)
+                    {
+                        if (left.Value != right.Value)
+                            return true;
+                
+                        return false;
+                    }
+                
                     {{GenerateHash()}}
+
+                    public override bool Equals([NotNullWhen(true)] object? o)
+                    {
+                        if (o is {{typeToGenerate.Name}} other)
+                            return _value == other._value;
+                
+                        return false;
+                    }
 
                     public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
                     {
