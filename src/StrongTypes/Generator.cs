@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using StrongTypes.SourceGenerators;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;

@@ -2,11 +2,11 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-public struct TypeToGenerate
+internal struct TypeToGenerate
 {
-    public string BaseTypeName { get; set; }
+    internal string BaseTypeName { get; set; }
 
-    public readonly string ClassOrStruct
+    internal readonly string ClassOrStruct
     {
         get
         {
@@ -21,11 +21,11 @@ public struct TypeToGenerate
         }
     }
 
-    public TypeDeclarationSyntax DeclarationSyntax { get; set; }
-    public readonly bool IsClass => DeclarationSyntax is ClassDeclarationSyntax;
-    public readonly bool IsRecord => DeclarationSyntax is RecordDeclarationSyntax;
-    public readonly string Modifiers => DeclarationSyntax.Modifiers.ToString();
-    public readonly string Name => DeclarationSyntax.Identifier.Text;
-    public string Namespace { get; set; }
-    public int MaxLength { get; set; }
+    internal TypeDeclarationSyntax DeclarationSyntax { get; set; }
+    internal readonly bool IsClass => DeclarationSyntax is ClassDeclarationSyntax;
+    internal readonly bool IsRecord => DeclarationSyntax is RecordDeclarationSyntax;
+    internal readonly string Modifiers => DeclarationSyntax.Modifiers.ToString();
+    internal readonly string Name => DeclarationSyntax.Identifier.Text;
+    internal string Namespace { get; set; }
+    internal int MaxLength { get; set; }
 }
