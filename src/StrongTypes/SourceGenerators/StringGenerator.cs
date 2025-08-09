@@ -18,6 +18,7 @@ internal static class StringGenerator
                         ArgumentNullException.ThrowIfNull(value, nameof(value));
 
                         {{GenerateStringLengthValidation(typeToGenerate)}}
+                        {{GenerateEmailValidation(typeToGenerate)}}
 
                         _value = value;
                     }
@@ -85,4 +86,26 @@ internal static class StringGenerator
 
                 """;
     }
+
+    private static string GenerateEmailValidation(TypeToGenerate typeToGenerate)
+    {
+        if (!typeToGenerate.IsEmail)
+        {
+            return "";
+        }
+
+        return $$"""
+                        // Email validation
+                        try
+                        {
+                            _ = new System.Net.Mail.MailAddress(value);
+                        }
+                        catch (FormatException)
+                        {
+                            throw new StrongTypes.EmailAddressFormatException();
+                        }
+
+                """;
+    }
+
 }

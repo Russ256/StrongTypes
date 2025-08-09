@@ -32,7 +32,8 @@ public class Attributes
                                         Integer = 0,
                                         Guid = 1,
                                         Uri = 2,
-                                        String = 3
+                                        String = 3,
+                                        EmailAddress = 4
                                     }
 
                                     

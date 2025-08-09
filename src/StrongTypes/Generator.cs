@@ -159,7 +159,12 @@ public class Generator : IIncrementalGenerator
                     typeToGenerate.MaxLength = int.Parse(mlExpression.ToString());
                 }
             }
-
+            else if (baseType == "BaseType.EmailAddress")
+            {
+                typeToGenerate.BaseTypeName = "string";
+                typeToGenerate.IsEmail = true;
+                typeToGenerate.MaxLength = 254; // Default max length for email addresses
+            }
 
             //SemanticModel sm = compilation.GetSemanticModel(typeDeclaration.SyntaxTree);
             //ITypeSymbol typeSymbol = sm.GetTypeInfo(expression.Type).Type;

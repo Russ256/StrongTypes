@@ -22,5 +22,12 @@ public class Exceptions
                                         public int StringLength { get; }
                                     
                                     }
+
+                                    public class EmailAddressFormatException : System.Exception
+                                    {
+                                        public EmailAddressFormatException()
+                                        {
+                                        }
+                                    }
                                     """;
 }
