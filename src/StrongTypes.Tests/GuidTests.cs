@@ -4,12 +4,12 @@ using FluentAssertions;
 using System;
 using System.Text.Json;
 
-[StrongType(typeof(Guid))]
+[StrongType(BaseType.Guid)]
 public readonly partial struct TestGuidStruct
 {
 }
 
-[StrongType(typeof(Guid))]
+[StrongType(BaseType.Guid)]
 public readonly partial record struct TestGuidRecord
 {
 }

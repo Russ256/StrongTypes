@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using StrongTypes.SourceGenerators;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,7 +14,7 @@ using System.Threading;
 [Generator(LanguageNames.CSharp)]
 public class Generator : IIncrementalGenerator
 {
-    private static readonly string[] _supportedTypes = ["int", "System.Guid", "System.Uri"];
+    private static readonly string[] _supportedTypes = ["int", "System.Guid", "System.Uri", "string"];
     private static SourceProductionContext _sourceProductionContext;
     internal const string _namespace = "StrongTypes";
     internal const string _attributeName = "StrongType";
@@ -24,6 +25,11 @@ public class Generator : IIncrementalGenerator
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
                                                         "StrongTypes.Attributes.g.cs",
                                                         SourceText.From(Attributes.Source, Encoding.UTF8)));
+
+        // Add our exceptions to the project
+        context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
+                                                        "StrongTypes.Exceptions.g.cs",
+                                                        SourceText.From(Exceptions.Source, Encoding.UTF8)));
 
         // Create a simple filter for class
         IncrementalValuesProvider<TypeDeclarationSyntax> typesProvider = context.SyntaxProvider
@@ -88,40 +94,19 @@ public class Generator : IIncrementalGenerator
         {
             ct.ThrowIfCancellationRequested();
 
+            TypeToGenerate typeToGenerate = new()
+            {
+                DeclarationSyntax = typeDeclaration,
+                Namespace = compilation.Namespace(typeDeclaration),
+            };
+
             // Identify the type to generate
             AttributeSyntax attr = compilation.GetAttribute(typeDeclaration, _attributeName);
-            TypeOfExpressionSyntax expression = attr.ArgumentList.Arguments[0].Expression as TypeOfExpressionSyntax;
-            SemanticModel sm = compilation.GetSemanticModel(typeDeclaration.SyntaxTree);
-            ITypeSymbol typeSymbol = sm.GetTypeInfo(expression.Type).Type;
-            string type = typeSymbol.ToString();
-            if (type == "System.Int32") type = "int";
 
-            if (!_supportedTypes.Contains(type))
-            {
-                Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0001",
-                                       "Not Supported",
-                                       "Type not supported",
-                                       "Strong Types",
-                                       DiagnosticSeverity.Error, true),
-                                       attr.ArgumentList.Arguments[0].GetLocation());
+            // Get type from attribute
+            ExpressionSyntax baseTypeExpression = attr.ArgumentList.Arguments[0].Expression;
 
-                _sourceProductionContext.ReportDiagnostic(diagnostic);
-                continue;
-            }
-
-            if (type == "System.Uri" && typeDeclaration is not ClassDeclarationSyntax)
-            {
-                Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0002",
-                                       "Not Supported",
-                                       "Only class supported for Uri type",
-                                       "Strong Types",
-                                       DiagnosticSeverity.Error, true),
-                                       attr.ArgumentList.Arguments[0].GetLocation());
-
-                _sourceProductionContext.ReportDiagnostic(diagnostic);
-                continue;
-            }
-
+            // Partial type check
             if (!typeDeclaration.Modifiers.Any(td => td.Text == "partial"))
             {
                 Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0003",
@@ -135,12 +120,92 @@ public class Generator : IIncrementalGenerator
                 continue;
             }
 
-            typesToGenerate.Add(new TypeToGenerate()
+            // Identify type.
+            string baseType = baseTypeExpression.ToFullString();
+            if (baseType == "BaseType.Integer")
             {
-                DeclarationSyntax = typeDeclaration,
-                Namespace = compilation.Namespace(typeDeclaration),
-                BaseType = type,
-            });
+                typeToGenerate.BaseTypeName = "int";
+            }
+            else if (baseType == "BaseType.Guid")
+            {
+                typeToGenerate.BaseTypeName = "System.Guid";
+            }
+            else if (baseType == "BaseType.Uri")
+            {
+                if (typeDeclaration is not ClassDeclarationSyntax)
+                {
+                    Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0002",
+                                           "Not Supported",
+                                           "Only class supported for Uri type",
+                                           "Strong Types",
+                                           DiagnosticSeverity.Error, true),
+                                           attr.ArgumentList.Arguments[0].GetLocation());
+
+                    _sourceProductionContext.ReportDiagnostic(diagnostic);
+                    continue;
+                }
+                else
+                {
+                    typeToGenerate.BaseTypeName = "System.Uri";
+                }
+            }
+            else if (baseType == "BaseType.String")
+            {
+                typeToGenerate.BaseTypeName = "string";
+
+                if (attr.ArgumentList.Arguments.Count > 1)
+                {
+                    ExpressionSyntax mlExpression = attr.ArgumentList.Arguments[1].Expression;
+                    typeToGenerate.MaxLength = int.Parse(mlExpression.ToString());
+                }
+            }
+
+
+            //SemanticModel sm = compilation.GetSemanticModel(typeDeclaration.SyntaxTree);
+            //ITypeSymbol typeSymbol = sm.GetTypeInfo(expression.Type).Type;
+            //string type = typeSymbol.ToString();
+            //if (type == "System.Int32") type = "int";
+
+            //if (!_supportedTypes.Contains(type))
+            //{
+            //    Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0001",
+            //                           "Not Supported",
+            //                           "Type not supported",
+            //                           "Strong Types",
+            //                           DiagnosticSeverity.Error, true),
+            //                           attr.ArgumentList.Arguments[0].GetLocation());
+
+            //    _sourceProductionContext.ReportDiagnostic(diagnostic);
+            //    continue;
+            //}
+
+            //if (type == "System.Uri" && typeDeclaration is not ClassDeclarationSyntax)
+            //{
+            //    Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0002",
+            //                           "Not Supported",
+            //                           "Only class supported for Uri type",
+            //                           "Strong Types",
+            //                           DiagnosticSeverity.Error, true),
+            //                           attr.ArgumentList.Arguments[0].GetLocation());
+
+            //    _sourceProductionContext.ReportDiagnostic(diagnostic);
+            //    continue;
+            //}
+
+            //if (!typeDeclaration.Modifiers.Any(td => td.Text == "partial"))
+            //{
+            //    Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0003",
+            //                           "Not Supported",
+            //                           "Types must be defined partial",
+            //                           "Strong Types",
+            //                           DiagnosticSeverity.Error, true),
+            //                           attr.ArgumentList.Arguments[0].GetLocation());
+
+            //    _sourceProductionContext.ReportDiagnostic(diagnostic);
+            //    continue;
+            //}
+
+            typesToGenerate.Add(typeToGenerate);
         }
 
         return typesToGenerate;
@@ -151,5 +216,20 @@ public class Generator : IIncrementalGenerator
         return node is ClassDeclarationSyntax m && m.AttributeLists.Count > 0
             || node is RecordDeclarationSyntax r && r.AttributeLists.Count > 0
             || node is StructDeclarationSyntax s && s.AttributeLists.Count > 0;
+    }
+
+    public static AttributeArgumentSyntax GetArgumentByName(AttributeArgumentListSyntax argumentList, string name)
+    {
+        if (argumentList == null) return null;
+
+        foreach (var arg in argumentList.Arguments)
+        {
+            if (arg.NameEquals != null &&
+                string.Equals(arg.NameEquals.Name.Identifier.ValueText, name, StringComparison.OrdinalIgnoreCase))
+            {
+                return arg;
+            }
+        }
+        return null;
     }
 }

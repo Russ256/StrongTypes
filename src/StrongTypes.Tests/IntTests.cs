@@ -3,15 +3,15 @@ namespace StrongTypes.Tests;
 using FluentAssertions;
 using System.Text.Json;
 
-[StrongType(typeof(int))]
+[StrongType(BaseType.Integer)]
 public readonly partial struct TestInt
 {
 }
 
-[StrongType(typeof(Int32))] // Do not remove Int32!
-public readonly partial struct TestInt32
-{
-}
+//[StrongType(BaseType.Integer)] // Do not remove Int32!
+//public readonly partial struct TestInt32
+//{
+//}
 
 [TestClass]
 public class IntTests
@@ -26,15 +26,15 @@ public class IntTests
         sut.ToString().Should().Be("500");
     }
 
-    [TestMethod]
-    public void Int32_Is_Generated_As_Int()
-    {
-        // Act
-        TestInt32 sut = new(500);
+    //[TestMethod]
+    //public void Int32_Is_Generated_As_Int()
+    //{
+    //    // Act
+    //    TestInt32 sut = new(500);
 
-        // Assert
-        sut.Value.Should().BeOfType(typeof(int));
-    }
+    //    // Assert
+    //    sut.Value.Should().BeOfType(typeof(int));
+    //}
 
     [TestMethod]
     public void Json_Deserialize_Should_Succeed()
