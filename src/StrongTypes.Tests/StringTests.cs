@@ -17,31 +17,17 @@ public partial class TestStringLength
 public class StringTests
 {
     [TestMethod]
-    public void Constructor_Should_Set_Value()
+    public void Assignment_To_String_Should_Succeed()
     {
         // Arrange
-        string testString = "test";
+        TestString? sut = "test";
 
         // Act
-        TestString sut = new(testString);
+        string result = sut!;
 
         // Assert
-        sut.Value.Should().Be(testString);
+        result.Should().Be("test");
     }
-
-    //[TestMethod]
-    //public void Assignment_To_String_Should_Succeed()
-    //{
-    //    // Arrange
-    //    TestString forename = "John";
-    //    TestString surname = "Smith";
-
-    //    // Act
-    //    string result = forename + surname;
-
-    //    // Assert
-    //    result.Should().Be("JohnSmith");
-    //}
 
     [TestMethod]
     public void Constructor_MaxLength_Should_Throw_Exception()
@@ -55,57 +41,42 @@ public class StringTests
     }
 
     [TestMethod]
-    public void Implicit_Constructor_Should_Set_Value()
+    public void Constructor_Should_Set_Value()
     {
         // Arrange
         string testString = "test";
 
         // Act
-        TestString sut = testString;
+        TestString sut = new(testString);
 
         // Assert
         sut.Value.Should().Be(testString);
     }
 
     [TestMethod]
-    public void Null_To_NullString_Equality()
+    public void Implicit_Constructor_Should_Set_Value()
     {
         // Arrange
-        TestString? sut1 = null;
-        string? sut2 = null;
+        string testString = "test";
 
         // Act
-        bool result = sut1! == sut2!;
+        TestString sut = testString!;
 
-        // Asset
-        result.Should().BeTrue();
+        // Assert
+        sut.Value.Should().Be(testString);
     }
 
     [TestMethod]
-    public void NullString_To_Null_Equality()
-    {
-        // Arrange
-        TestString? sut1 = null;
-        string? sut2 = null;
-
-        // Act
-        bool result = sut2! == sut1!;
-
-        // Asset
-        result.Should().BeTrue();
-    }
-
-    [TestMethod]
-    [DataRow("s1", "s1", true, DisplayName = "Values Equal")]
     [DataRow(null, null, true, DisplayName = "Nulls Equal")]
+    [DataRow("s1", "s1", true, DisplayName = "Values Equal")]
     [DataRow("s1", "!s1", false, DisplayName = "Not equal")]
     [DataRow("s1", null, false, DisplayName = "Not equal")]
     [DataRow(null, "s1", false, DisplayName = "Not equal")]
     public void Implicit_Equality(string? left, string? right, bool result)
     {
         // Arrange
-        TestString? leftSut = left ?? (TestString)null!;
-        TestString? rithSut = right ?? (TestString)null!;
+        TestString? leftSut = left ?? null!;
+        TestString? rithSut = right ?? null!;
 
         // Act
         bool testResult1 = leftSut! == rithSut!;
@@ -130,7 +101,7 @@ public class StringTests
     public void Implicit_String_Equality(string? left, string right, bool result)
     {
         // Arrange
-        TestString? leftSut = left ?? (TestString)null!;
+        TestString? leftSut = left ?? null!;
 
         // Act
         bool testResult1 = leftSut! == right;
@@ -166,12 +137,40 @@ public class StringTests
     {
         // Arrange
         string testString = "test";
-        TestString sut = testString;
+        TestString sut = testString!;
 
         // Act
         string result = JsonSerializer.Serialize(sut);
 
         // Assert
         result.Should().Be($"\"{testString}\"");
+    }
+
+    [TestMethod]
+    public void Null_To_NullString_Equality()
+    {
+        // Arrange
+        TestString? sut1 = null;
+        string? sut2 = null;
+
+        // Act
+        bool result = sut1! == sut2!;
+
+        // Asset
+        result.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void NullString_To_Null_Equality()
+    {
+        // Arrange
+        TestString? sut1 = null;
+        string? sut2 = null;
+
+        // Act
+        bool result = sut2! == sut1!;
+
+        // Asset
+        result.Should().BeTrue();
     }
 }

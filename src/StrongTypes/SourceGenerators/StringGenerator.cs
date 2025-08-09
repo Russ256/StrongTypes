@@ -8,7 +8,7 @@ internal static class StringGenerator
                 {{SourceGenerator.GenerateHeader(typeToGenerate)}}
 
                 [JsonConverter(typeof(JsonConverter))]
-                {{typeToGenerate.Modifiers}} class {{typeToGenerate.Name}}
+                {{typeToGenerate.Modifiers}} class {{typeToGenerate.Name}} : IEquatable<{{typeToGenerate.Name}}>
                 {
                     private readonly {{typeToGenerate.BaseTypeName}} _value;
                     public {{typeToGenerate.BaseTypeName}} Value => _value;
@@ -22,120 +22,39 @@ internal static class StringGenerator
                         _value = value;
                     }
 
-                    public static implicit operator {{typeToGenerate.Name}}(string s)
-                    {
-                        return new {{typeToGenerate.Name}}(s);
-                    }
-
                     public override string ToString() => _value.ToString();
 
-                    // Euqality operators
-                    public static bool operator ==({{typeToGenerate.Name}} left, {{typeToGenerate.Name}} right)
-                    {
-                        if (left is null && right is null)
-                        {
-                            return true;
-                        }
 
-                        if ((left is null && right is not null)
-                             || (left is not null && right is null))
-                        {
-                            return false;
-                        }
+                    // Equality operators
+                    public bool Equals([NotNullWhen(true)] {{typeToGenerate.Name}}? other) 
+                        => other is not null && string.Equals(_value, other._value, StringComparison.Ordinal);
 
-                        return left!.Value == right!.Value;
-                    }
+                    public override bool Equals(object? obj)
+                        => obj is {{typeToGenerate.Name}} t && Equals(t);
 
-                    public static bool operator ==({{typeToGenerate.Name}} left, string right)
-                    {
-                        if (left is null && right is null)
-                        {
-                            return true;
-                        }
+                    public override int GetHashCode()
+                        => StringComparer.Ordinal.GetHashCode(_value);
 
-                        if ((left is null && right is not null)
-                            || (right is null && left is not null))
-                        {
-                            return false;
-                        }
+                    public static bool operator ==({{typeToGenerate.Name}}? left, {{typeToGenerate.Name}}? right)
+                        => ReferenceEquals(left, right) || (left is not null && left.Equals(right));
 
-                        return left!.Value == right;
-                    }
+                    public static bool operator !=({{typeToGenerate.Name}}? left, {{typeToGenerate.Name}}? right) 
+                        => !(left == right);
+                  
+                    // String interop - optional but avoids allocations 
+                    public static bool operator ==({{typeToGenerate.Name}}? left, string? right) => left?._value == right;
+                    public static bool operator !=({{typeToGenerate.Name}}? left, string? right) => !(left == right);
+                    public static bool operator ==(string? left, {{typeToGenerate.Name}}? right) => left == right?._value;
+                    public static bool operator !=(string? left, {{typeToGenerate.Name}}? right) => !(left == right);
 
-                    public static bool operator ==(string left, {{typeToGenerate.Name}} right)
-                    {
-                        if (left is null && right is null)
-                        {
-                            return true;
-                        }
+                    // null safe conversions
+                    public static implicit operator string?({{typeToGenerate.Name}}? s)
+                        => s?._value;
+                
+                    public static implicit operator {{typeToGenerate.Name}}? (string? s)
+                         => s is null ? null : new {{typeToGenerate.Name}}(s);
 
-                        if ((left is null && right is not null)
-                            || (right is null && left is not null))
-                        {
-                            return false;
-                        }
-
-                        return left == right!.Value;
-                    }
-
-                    public static bool operator !=({{typeToGenerate.Name}} left, {{typeToGenerate.Name}} right)
-                    {
-                        if (left is null && right is null)
-                        {
-                            return false;
-                        }
-
-                        if ((left is null && right is not null)
-                             || (left is not null && right is null))
-                        {
-                            return true;
-                        }
-
-                        return left!.Value != right!.Value;
-                    }
-
-                    public static bool operator !=({{typeToGenerate.Name}} left, string right)
-                    {
-                        if (left is null && right is null)
-                        {
-                            return false;
-                        }
-
-                        if ((left is null && right is not null)
-                            || (right is null && left is not null))
-                        {
-                            return true;
-                        }
-
-                        return left!.Value != right;
-                    }
-
-                    public static bool operator !=(string left, {{typeToGenerate.Name}} right)
-                    {
-                         if (left is null && right is null)
-                        {
-                            return false;
-                        }
-
-                        if ((left is null && right is not null)
-                            || (right is null && left is not null))
-                        {
-                            return true;
-                        }
-
-                        return left != right!.Value;
-                   }
-
-                    {{SourceGenerator.GenerateHash()}}
-
-                    public override bool Equals([NotNullWhen(true)] object? o)
-                    {
-                        if (o is {{typeToGenerate.Name}} other)
-                            return _value == other._value;
-
-                        return false;
-                    }
-
+                    // Json serialization support
                     public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
                     {
                         public override {{typeToGenerate.Name}} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
