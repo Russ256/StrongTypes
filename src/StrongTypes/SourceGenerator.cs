@@ -330,53 +330,102 @@ public static class SourceGenerator
                 
                     public override string ToString() => _value.ToString();
 
-                    public static bool operator ==({{typeToGenerate.Name}} left, string right)
-                    {
-                        if (left.Value == right)
-                            return true;
-
-                        return false;
-                    }
-
+                    // Euqality operators
                     public static bool operator ==({{typeToGenerate.Name}} left, {{typeToGenerate.Name}} right)
                     {
-                        if (left.Value == right.Value)
+                        if (left is null && right is null)
+                        {
                             return true;
-                
-                        return false;
+                        }   
+                         
+                        if ((left is null && right is not null)
+                             || (left is not null && right is null))
+                        {
+                            return false;
+                        }   
+                         
+                        return left.Value == right.Value;
                     }
-                
-                    public static bool operator ==(string left, {{typeToGenerate.Name}} right)
-                    {
-                        if (left == right.Value)
-                            return true;
-                
-                        return false;
-                    }
-                
-                    public static bool operator !=({{typeToGenerate.Name}} left, string right)
-                    {
-                        if (left.Value != right)
-                            return true;
 
-                        return false;
+                    public static bool operator ==({{typeToGenerate.Name}} left, string right) 
+                    {
+                        if (left is null && right is null)
+                        {
+                            return true;
+                        }   
+
+                        if ((left is null && right is not null)
+                            || (right is null && left is not null))    
+                        {
+                            return false;
+                        }
+                  
+                        return left.Value == right;
+                    }
+
+                    public static bool operator ==(string left, {{typeToGenerate.Name}} right) 
+                    {
+                        if (left is null && right is null)
+                        {
+                            return true;
+                        }   
+
+                        if ((left is null && right is not null)
+                            || (right is null && left is not null))    
+                        {
+                            return false;
+                        }
+                  
+                        return left == right.Value;
+                    }
+
+                    public static bool operator !=({{typeToGenerate.Name}} left, {{typeToGenerate.Name}} right)
+                    {
+                        if (left is null && right is null)
+                        {
+                            return false;
+                        }   
+                         
+                        if ((left is null && right is not null)
+                             || (left is not null && right is null))
+                        {
+                            return true;
+                        }   
+                
+                        return left.Value != right.Value;
+                    }
+
+                    public static bool operator !=({{typeToGenerate.Name}} left, string right) 
+                    {
+                        if (left is null && right is null)
+                        {
+                            return false;
+                        }   
+                
+                        if ((left is null && right is not null)
+                            || (right is null && left is not null))    
+                        {
+                            return true;
+                        }
+                  
+                        return left.Value != right;
                     }
 
                     public static bool operator !=(string left, {{typeToGenerate.Name}} right)
                     {
-                        if (left != right.Value)
+                         if (left is null && right is null)
+                        {
+                            return false;
+                        }   
+                
+                        if ((left is null && right is not null)
+                            || (right is null && left is not null))    
+                        {
                             return true;
-                
-                        return false;
-                    }
-                
-                    public static bool operator !=({{typeToGenerate.Name}} left, {{typeToGenerate.Name}} right)
-                    {
-                        if (left.Value != right.Value)
-                            return true;
-                
-                        return false;
-                    }
+                        }
+                  
+                        return left != right.Value;
+                   }
                 
                     {{GenerateHash()}}
 

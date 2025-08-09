@@ -29,6 +29,20 @@ public class StringTests
         sut.Value.Should().Be(testString);
     }
 
+    //[TestMethod]
+    //public void Assignment_To_String_Should_Succeed()
+    //{
+    //    // Arrange
+    //    TestString forename = "John";
+    //    TestString surname = "Smith";
+
+    //    // Act
+    //    string result = forename + surname;
+
+    //    // Assert
+    //    result.Should().Be("JohnSmith");
+    //}
+
     [TestMethod]
     public void Constructor_MaxLength_Should_Throw_Exception()
     {
@@ -54,20 +68,51 @@ public class StringTests
     }
 
     [TestMethod]
-    [DataRow("s1", "s1", true, DisplayName = "Equal")]
-    [DataRow("s1", "!s1", false, DisplayName = "Not equal")]
-    public void Implicit_Equality(string left, string right, bool result)
+    public void Null_To_NullString_Equality()
     {
         // Arrange
-        TestString sut1 = left;
-        TestString sut2 = right;
+        TestString? sut1 = null;
+        string? sut2 = null;
 
         // Act
-        bool testResult1 = sut1 == sut2;
-        bool testResult2 = sut1 != sut2;
+        bool result = sut1! == sut2!;
 
-        bool testResult3 = sut2 == sut1;
-        bool testResult4 = sut2 != sut1;
+        // Asset
+        result.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void NullString_To_Null_Equality()
+    {
+        // Arrange
+        TestString? sut1 = null;
+        string? sut2 = null;
+
+        // Act
+        bool result = sut2! == sut1!;
+
+        // Asset
+        result.Should().BeTrue();
+    }
+
+    [TestMethod]
+    [DataRow("s1", "s1", true, DisplayName = "Values Equal")]
+    [DataRow(null, null, true, DisplayName = "Nulls Equal")]
+    [DataRow("s1", "!s1", false, DisplayName = "Not equal")]
+    [DataRow("s1", null, false, DisplayName = "Not equal")]
+    [DataRow(null, "s1", false, DisplayName = "Not equal")]
+    public void Implicit_Equality(string? left, string? right, bool result)
+    {
+        // Arrange
+        TestString? leftSut = left ?? (TestString)null!;
+        TestString? rithSut = right ?? (TestString)null!;
+
+        // Act
+        bool testResult1 = leftSut! == rithSut!;
+        bool testResult2 = leftSut! != rithSut!;
+
+        bool testResult3 = rithSut! == leftSut!;
+        bool testResult4 = rithSut! != leftSut!;
 
         // Assert
         testResult1.Should().Be(result);
@@ -78,19 +123,21 @@ public class StringTests
 
     [TestMethod]
     [DataRow("s1", "s1", true, DisplayName = "Equal")]
+    [DataRow(null, null, true, DisplayName = "Equal")]
     [DataRow("s1", "!s1", false, DisplayName = "Not equal")]
-    public void Implicit_String_Equality(string left, string right, bool result)
+    [DataRow("s1", null, false, DisplayName = "Not equal")]
+    [DataRow(null, "s1", false, DisplayName = "Not equal")]
+    public void Implicit_String_Equality(string? left, string right, bool result)
     {
         // Arrange
-        string testString = left;
-        TestString sut = testString;
+        TestString? leftSut = left ?? (TestString)null!;
 
         // Act
-        bool testResult1 = sut == right;
-        bool testResult2 = sut != right;
+        bool testResult1 = leftSut! == right;
+        bool testResult2 = leftSut! != right;
 
-        bool testResult3 = right == sut;
-        bool testResult4 = right != sut;
+        bool testResult3 = right == leftSut!;
+        bool testResult4 = right != leftSut!;
 
         // Assert
         testResult1.Should().Be(result);
