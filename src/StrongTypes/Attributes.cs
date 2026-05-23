@@ -27,7 +27,7 @@ public class Attributes
                                         internal int MaxLength { get; }
                                     }
 
-                                    public enum BaseType
+                                    internal enum BaseType
                                     {
                                         Integer = 0,
                                         Guid = 1,
