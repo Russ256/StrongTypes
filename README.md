@@ -28,6 +28,11 @@ classes; structs and records receive `ST0008`. URI types also require ordinary
 classes (`ST0002`). File-local types are rejected with `ST0009`; remove the
 `file` modifier to allow generation in a separate source file.
 
+String and email equality operators compare instances of the same generated type
+and support null literals on either side. Comparisons with raw strings use the
+implicit conversion to the strong type, including its constructor validation.
+Compare `.Value` directly when checking unvalidated text without creating a wrapper.
+
 ## Continuous integration
 
 GitHub Actions runs Release builds and tests on Windows and Linux for pushes

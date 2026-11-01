@@ -25,6 +25,11 @@ public sealed partial record class GuidRecordClassId;
 
 internal static class NullableFlowChecks
 {
+    internal static bool StringIsNull(StringId? value) => value == null || null == value;
+    internal static bool StringIsNotNull(StringId? value) => value != null && null != value;
+    internal static bool EmailIsNull(EmailId? value) => value == null || null == value;
+    internal static bool EmailIsNotNull(EmailId? value) => value != null && null != value;
+
     internal static int ParseGuid(string? value)
     {
         if (GuidClassId.TryParse(value, out GuidClassId? result))

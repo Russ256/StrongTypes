@@ -42,12 +42,6 @@ internal static class StringGenerator
                     public static bool operator !=({{typeToGenerate.Name}}? left, {{typeToGenerate.Name}}? right)
                         => !(left == right);
 
-                    // String interop - optional but avoids allocations (compiler will generate a new instance of the type to do the comparison)
-                    public static bool operator ==({{typeToGenerate.Name}}? left, string? right) => left?._value == right;
-                    public static bool operator !=({{typeToGenerate.Name}}? left, string? right) => !(left == right);
-                    public static bool operator ==(string? left, {{typeToGenerate.Name}}? right) => left == right?._value;
-                    public static bool operator !=(string? left, {{typeToGenerate.Name}}? right) => !(left == right);
-
                     // null safe conversions
                     public static implicit operator string?({{typeToGenerate.Name}}? s)
                         => s?._value;
