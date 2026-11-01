@@ -90,6 +90,11 @@ internal static class StringGenerator
 
         return $$"""
                         // Email validation
+                        if (value.Length == 0)
+                        {
+                            throw new global::StrongTypes.EmailAddressFormatException();
+                        }
+
                         try
                         {
                             _ = new global::System.Net.Mail.MailAddress(value);
