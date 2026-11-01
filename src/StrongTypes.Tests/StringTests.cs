@@ -37,7 +37,13 @@ public class StringTests
         Action action = () => _ = new TestStringLength(testString);
 
         // Act
-        action.Should().Throw<MaxLengthException>().WithMessage($"String of length {testString.Length} exceeds the maximum of 3 for type TestStringLength");
+        MaxLengthException exception = action.Should().Throw<MaxLengthException>()
+            .WithMessage($"String of length {testString.Length} exceeds the maximum of 3 for type TestStringLength").Which;
+
+        // Assert
+        exception.Type.Should().Be(typeof(TestStringLength));
+        exception.MaxLength.Should().Be(3);
+        exception.StringLength.Should().Be(testString.Length);
     }
 
     [TestMethod]

@@ -12,7 +12,7 @@ public class Exceptions
                                         {
                                             Type = type;
                                             MaxLength = maxLength;
-                                            StringLength = StringLength;
+                                            StringLength = stringLength;
                                         }
                                     
                                         public global::System.Type Type { get; }
