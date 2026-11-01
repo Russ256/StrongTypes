@@ -11,6 +11,39 @@ public readonly partial struct GuidId { }
 [global::StrongTypes.StrongType(global::StrongTypes.BaseType.Guid)]
 public readonly partial record struct GuidRecordId { }
 
+[global::StrongTypes.StrongType(global::StrongTypes.BaseType.Guid)]
+public partial class GuidClassId { }
+
+[global::StrongTypes.StrongType(global::StrongTypes.BaseType.Integer)]
+public partial class IntegerClassId { }
+
+[global::StrongTypes.StrongType(global::StrongTypes.BaseType.Integer)]
+public partial record IntegerRecordId;
+
+[global::StrongTypes.StrongType(global::StrongTypes.BaseType.Guid)]
+public sealed partial record class GuidRecordClassId;
+
+internal static class NullableFlowChecks
+{
+    internal static int ParseGuid(string? value)
+    {
+        if (GuidClassId.TryParse(value, out GuidClassId? result))
+        {
+            return result.CompareTo(null);
+        }
+        return 0;
+    }
+
+    internal static int ParseInteger(string? value)
+    {
+        if (IntegerRecordId.TryParse(value, null, out IntegerRecordId? result))
+        {
+            return result.Value;
+        }
+        return 0;
+    }
+}
+
 [global::StrongTypes.StrongType(global::StrongTypes.BaseType.String, 3)]
 public partial class StringId { }
 

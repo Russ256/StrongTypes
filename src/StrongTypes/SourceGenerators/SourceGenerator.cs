@@ -82,6 +82,13 @@ internal static class SourceGenerator
                  """;
     }
 
+    internal static string GenerateCompareTo(TypeToGenerate typeToGenerate)
+    {
+        return typeToGenerate.IsReferenceType
+            ? $"public int CompareTo({typeToGenerate.NullableName} other) => other is null ? 1 : _value.CompareTo(other._value);"
+            : $"public int CompareTo({typeToGenerate.Name} other) => _value.CompareTo(other._value);";
+    }
+
     internal static string GenerateHash(TypeToGenerate typeToGenerate)
     {
         if (typeToGenerate.IsRecord)

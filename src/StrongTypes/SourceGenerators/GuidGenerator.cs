@@ -27,7 +27,7 @@ internal static class GuidGenerator
                     public static {{typeToGenerate.Name}} Parse(string s) => Parse(s, provider: null);
                     public static {{typeToGenerate.Name}} Parse(string s, global::System.IFormatProvider? provider)
                     {
-                        if (TryParse(s, provider, out {{typeToGenerate.Name}} result))
+                        if (TryParse(s, provider, out {{typeToGenerate.NullableName}} result))
                         {
                             return result;
                         }
@@ -35,8 +35,8 @@ internal static class GuidGenerator
                         throw new global::System.FormatException($"'{s}' is not a valid {{typeToGenerate.Name}}.");
                     }
 
-                    public static bool TryParse(string? s, out {{typeToGenerate.Name}} result) => TryParse(s, provider: null, out result);
-                    public static bool TryParse([global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, global::System.IFormatProvider? provider, [global::System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute(false)] out {{typeToGenerate.Name}} result)
+                    public static bool TryParse(string? s, [global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] out {{typeToGenerate.NullableName}} result) => TryParse(s, provider: null, out result);
+                    public static bool TryParse([global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] string? s, global::System.IFormatProvider? provider, [global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] out {{typeToGenerate.NullableName}} result)
                     {
                         result = default;
 
@@ -59,7 +59,7 @@ internal static class GuidGenerator
 
                     public override string ToString() => _value.ToString();
 
-                    public int CompareTo({{typeToGenerate.Name}} other) => _value.CompareTo(other._value);
+                    {{SourceGenerator.GenerateCompareTo(typeToGenerate)}}
 
                     {{SourceGenerator.GenerateHash(typeToGenerate)}}
                     {{SourceGenerator.GenerateEquals(typeToGenerate)}}
