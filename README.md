@@ -26,3 +26,10 @@ The generator reports errors for global-namespace (`ST0005`), nested (`ST0006`),
 and generic (`ST0007`) declarations. String and email types must be ordinary
 classes; structs and records receive `ST0008`. URI types also require ordinary
 classes (`ST0002`).
+
+## Continuous integration
+
+GitHub Actions runs Release builds and tests on Windows and Linux for pushes
+and pull requests, and supports manual runs. Solution builds include the
+compile-only regression checks. TRX test reports are retained as workflow
+artifacts for 14 days.
