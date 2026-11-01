@@ -97,6 +97,13 @@ public class Generator : IIncrementalGenerator
                 continue;
             }
 
+            if (symbol.DeclaringSyntaxReferences.Any(reference =>
+                reference.GetSyntax(ct) is TypeDeclarationSyntax type && type.ParameterList != null))
+            {
+                ReportDiagnostic(context, "ST0010", "Primary constructors are not supported for strong types; remove the parameter list", location);
+                continue;
+            }
+
             if (symbol.ContainingNamespace.IsGlobalNamespace)
             {
                 ReportDiagnostic(context, "ST0005", "Strong types must be declared in a namespace", location);

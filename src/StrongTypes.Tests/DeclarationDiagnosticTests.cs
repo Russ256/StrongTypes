@@ -57,6 +57,14 @@ public class DeclarationDiagnosticTests
     [DataRow("namespace Example { [StrongType(BaseType.String)] file partial class Id { } }", "ST0009")]
     [DataRow("namespace Example { [StrongType(BaseType.Guid)] file partial record Id; }", "ST0009")]
     [DataRow("namespace Example { [StrongType(BaseType.Integer)] file partial record struct Id; }", "ST0009")]
+    [DataRow("namespace Example { [StrongType(BaseType.Integer)] public partial class Id(bool flag) { } }", "ST0010")]
+    [DataRow("namespace Example { [StrongType(BaseType.Guid)] public partial class Id() { } }", "ST0010")]
+    [DataRow("namespace Example { [StrongType(BaseType.Integer)] public readonly partial struct Id(int value) { } }", "ST0010")]
+    [DataRow("namespace Example { [StrongType(BaseType.Guid)] public partial record Id(System.Guid Value); }", "ST0010")]
+    [DataRow("namespace Example { [StrongType(BaseType.Integer)] public partial record struct Id(int Value); }", "ST0010")]
+    [DataRow("namespace Example { [StrongType(BaseType.String)] public partial class Id(string value) { } }", "ST0010")]
+    [DataRow("namespace Example { [StrongType(BaseType.EmailAddress)] public partial class Id(string value) { } }", "ST0010")]
+    [DataRow("namespace Example { [StrongType(BaseType.Uri)] public partial class Id(System.Uri value) { } }", "ST0010")]
     public void Unsupported_Declaration_Should_Report_Diagnostic_Without_Emitting_Type(string declaration, string diagnosticId)
     {
         // Arrange
@@ -104,5 +112,37 @@ public class DeclarationDiagnosticTests
         result.Diagnostics.Should().ContainSingle().Which.Id.Should().Be("ST0009");
         result.GeneratedSources.Select(generated => generated.HintName).Should().BeEquivalentTo(
             "StrongTypes.Attributes.g.cs", "StrongTypes.Exceptions.g.cs", "Example.PublicId.g.cs");
+    }
+
+    [TestMethod]
+    public void Primary_Constructor_On_Another_Partial_Declaration_Should_Be_Rejected_Without_Blocking_Valid_Types()
+    {
+        // Arrange
+        SyntaxTree annotatedSource = CSharpSyntaxTree.ParseText("""
+            using StrongTypes;
+            namespace Example;
+            [StrongType(BaseType.Integer)] public partial class Id { }
+            [StrongType(BaseType.Integer)] public partial struct ValidId { }
+            """, path: "Annotated.cs");
+        SyntaxTree constructorSource = CSharpSyntaxTree.ParseText("""
+            namespace Example;
+            public partial class Id(bool flag) { public bool Flag => flag; }
+            """, path: "Constructor.cs");
+        CSharpCompilation compilation = CSharpCompilation.Create("PartialDeclarations", [annotatedSource, constructorSource],
+            [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)],
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new Generator().AsSourceGenerator());
+
+        // Act
+        GeneratorRunResult result = driver.RunGenerators(compilation).GetRunResult().Results.Single();
+
+        // Assert
+        result.Exception.Should().BeNull();
+        Diagnostic diagnostic = result.Diagnostics.Should().ContainSingle().Subject;
+        diagnostic.Id.Should().Be("ST0010");
+        diagnostic.Severity.Should().Be(DiagnosticSeverity.Error);
+        diagnostic.Location.SourceTree.Should().BeSameAs(annotatedSource);
+        result.GeneratedSources.Select(generated => generated.HintName).Should().BeEquivalentTo(
+            "StrongTypes.Attributes.g.cs", "StrongTypes.Exceptions.g.cs", "Example.ValidId.g.cs");
     }
 }

@@ -27,6 +27,9 @@ and generic (`ST0007`) declarations. String and email types must be ordinary
 classes; structs and records receive `ST0008`. URI types also require ordinary
 classes (`ST0002`). File-local types are rejected with `ST0009`; remove the
 `file` modifier to allow generation in a separate source file.
+Primary constructors, including positional record declarations and empty
+parameter lists, are rejected with `ST0010`. Remove the primary-constructor
+parameter list and use the generated value constructors instead.
 
 String and email equality operators compare instances of the same generated type
 and support null literals on either side. Comparisons with raw strings use the
