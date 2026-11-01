@@ -53,7 +53,7 @@ public class Generator : IIncrementalGenerator
         foreach (TypeToGenerate typeToGenerate in endpointsToGenerate)
         {
             string source = SourceGenerator.Generate(typeToGenerate);
-            context.AddSource($"{typeToGenerate.Name}.g.cs", source);
+            context.AddSource(typeToGenerate.HintName, source);
         }
     }
 
@@ -98,6 +98,7 @@ public class Generator : IIncrementalGenerator
             {
                 DeclarationSyntax = declaration,
                 Namespace = compilation.Namespace(declaration),
+                HintName = GetHintName(symbol),
             };
 
             // Roslyn resolves aliases, constant expressions, and named argument order.
@@ -141,6 +142,21 @@ public class Generator : IIncrementalGenerator
             typesToGenerate.Add(typeToGenerate);
         }
         return typesToGenerate;
+    }
+
+    private static string GetHintName(INamedTypeSymbol symbol)
+    {
+        // Metadata names preserve generic arity; '+' distinguishes containing types
+        // from namespaces without introducing filesystem path separators.
+        Stack<string> typeNames = new();
+        for (INamedTypeSymbol type = symbol; type != null; type = type.ContainingType)
+        {
+            typeNames.Push(type.MetadataName);
+        }
+
+        string prefix = symbol.ContainingNamespace.IsGlobalNamespace
+            ? string.Empty : symbol.ContainingNamespace.ToDisplayString() + ".";
+        return prefix + string.Join("+", typeNames) + ".g.cs";
     }
 
     private static void ReportDiagnostic(string id, string message, Location location)
