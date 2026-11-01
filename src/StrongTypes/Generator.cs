@@ -91,6 +91,12 @@ public class Generator : IIncrementalGenerator
                 continue;
             }
 
+            if (symbol.IsFileLocal)
+            {
+                ReportDiagnostic(context, "ST0009", "File-local strong types are not supported; remove the file modifier", location);
+                continue;
+            }
+
             if (symbol.ContainingNamespace.IsGlobalNamespace)
             {
                 ReportDiagnostic(context, "ST0005", "Strong types must be declared in a namespace", location);

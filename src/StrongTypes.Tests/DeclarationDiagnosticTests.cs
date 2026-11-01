@@ -53,6 +53,10 @@ public class DeclarationDiagnosticTests
     [DataRow("namespace Example { [StrongType(BaseType.EmailAddress)] public partial struct Id { } }", "ST0008")]
     [DataRow("namespace Example { [StrongType(BaseType.String)] public partial record Id; }", "ST0008")]
     [DataRow("namespace Example { [StrongType(BaseType.EmailAddress)] public partial record struct Id; }", "ST0008")]
+    [DataRow("namespace Example { [StrongType(BaseType.Integer)] file partial struct Id { } }", "ST0009")]
+    [DataRow("namespace Example { [StrongType(BaseType.String)] file partial class Id { } }", "ST0009")]
+    [DataRow("namespace Example { [StrongType(BaseType.Guid)] file partial record Id; }", "ST0009")]
+    [DataRow("namespace Example { [StrongType(BaseType.Integer)] file partial record struct Id; }", "ST0009")]
     public void Unsupported_Declaration_Should_Report_Diagnostic_Without_Emitting_Type(string declaration, string diagnosticId)
     {
         // Arrange
@@ -75,5 +79,30 @@ public class DeclarationDiagnosticTests
         source.GetText().ToString(diagnostic.Location.SourceSpan).Should().StartWith("StrongType(BaseType.");
         result.GeneratedSources.Select(generated => generated.HintName).Should().BeEquivalentTo(
             "StrongTypes.Attributes.g.cs", "StrongTypes.Exceptions.g.cs");
+    }
+
+    [TestMethod]
+    public void File_Local_Declaration_Should_Not_Prevent_Generation_For_Valid_Types()
+    {
+        // Arrange
+        SyntaxTree source = CSharpSyntaxTree.ParseText("""
+            using StrongTypes;
+            namespace Example;
+            [StrongType(BaseType.Integer)] file partial struct LocalId { }
+            [StrongType(BaseType.Integer)] public partial struct PublicId { }
+            """);
+        CSharpCompilation compilation = CSharpCompilation.Create("MixedDeclarations", [source],
+            [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)],
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new Generator().AsSourceGenerator());
+
+        // Act
+        GeneratorRunResult result = driver.RunGenerators(compilation).GetRunResult().Results.Single();
+
+        // Assert
+        result.Exception.Should().BeNull();
+        result.Diagnostics.Should().ContainSingle().Which.Id.Should().Be("ST0009");
+        result.GeneratedSources.Select(generated => generated.HintName).Should().BeEquivalentTo(
+            "StrongTypes.Attributes.g.cs", "StrongTypes.Exceptions.g.cs", "Example.PublicId.g.cs");
     }
 }

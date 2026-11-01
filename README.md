@@ -25,7 +25,8 @@ Strong types must be partial, non-generic types declared directly in a namespace
 The generator reports errors for global-namespace (`ST0005`), nested (`ST0006`),
 and generic (`ST0007`) declarations. String and email types must be ordinary
 classes; structs and records receive `ST0008`. URI types also require ordinary
-classes (`ST0002`).
+classes (`ST0002`). File-local types are rejected with `ST0009`; remove the
+`file` modifier to allow generation in a separate source file.
 
 ## Continuous integration
 
