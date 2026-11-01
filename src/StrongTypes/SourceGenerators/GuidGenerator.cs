@@ -61,7 +61,7 @@ internal static class GuidGenerator
 
                     public int CompareTo({{typeToGenerate.Name}} other) => _value.CompareTo(other._value);
 
-                    {{SourceGenerator.GenerateHash()}}
+                    {{SourceGenerator.GenerateHash(typeToGenerate)}}
                     {{SourceGenerator.GenerateEquals(typeToGenerate)}}
                     {{SourceGenerator.GenerateEqualOperators(typeToGenerate)}}
 

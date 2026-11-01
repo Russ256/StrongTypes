@@ -66,9 +66,9 @@ internal static class SourceGenerator
     {
         if (typeToGenerate.IsRecord)
         {
-            return $$"""
-                     public bool Equals([global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] {{typeToGenerate.Name}} other) => _value == other._value;
-                     """;
+            // Let the compiler synthesize null-safe equality, including record
+            // inheritance contracts and any additional user-declared state.
+            return string.Empty;
         }
 
         return $$"""
@@ -82,8 +82,13 @@ internal static class SourceGenerator
                  """;
     }
 
-    internal static string GenerateHash()
+    internal static string GenerateHash(TypeToGenerate typeToGenerate)
     {
+        if (typeToGenerate.IsRecord)
+        {
+            return string.Empty;
+        }
+
         return $$"""
                 public override int GetHashCode() => _value.GetHashCode();
                 """;

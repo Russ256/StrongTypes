@@ -29,7 +29,7 @@ internal static class UriGenerator
 
                     public override string ToString() => _value.ToString();
 
-                    {{SourceGenerator.GenerateHash()}}
+                    {{SourceGenerator.GenerateHash(typeToGenerate)}}
                     {{SourceGenerator.GenerateEquals(typeToGenerate)}}
                     {{SourceGenerator.GenerateEqualOperators(typeToGenerate)}}
 
