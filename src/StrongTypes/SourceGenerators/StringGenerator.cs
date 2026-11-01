@@ -1,4 +1,4 @@
-﻿namespace StrongTypes.SourceGenerators;
+namespace StrongTypes.SourceGenerators;
 
 internal static class StringGenerator
 {
@@ -7,15 +7,15 @@ internal static class StringGenerator
         string code = $$"""
                 {{SourceGenerator.GenerateHeader(typeToGenerate)}}
 
-                [JsonConverter(typeof(JsonConverter))]
-                {{typeToGenerate.Modifiers}} class {{typeToGenerate.Name}} : IEquatable<{{typeToGenerate.Name}}>
+                [global::System.Text.Json.Serialization.JsonConverterAttribute(typeof(JsonConverter))]
+                {{typeToGenerate.Modifiers}} class {{typeToGenerate.Name}} : global::System.IEquatable<{{typeToGenerate.Name}}>
                 {
                     private readonly {{typeToGenerate.BaseTypeName}} _value;
                     public {{typeToGenerate.BaseTypeName}} Value => _value;
 
                     public {{typeToGenerate.Name}}({{typeToGenerate.BaseTypeName}} value)
                     {
-                        ArgumentNullException.ThrowIfNull(value, nameof(value));
+                        global::System.ArgumentNullException.ThrowIfNull(value, nameof(value));
 
                         {{GenerateStringLengthValidation(typeToGenerate)}}
                         {{GenerateEmailValidation(typeToGenerate)}}
@@ -27,21 +27,21 @@ internal static class StringGenerator
 
 
                     // Equality operators
-                    public bool Equals([NotNullWhen(true)] {{typeToGenerate.Name}}? other) 
-                        => other is not null && string.Equals(_value, other._value, StringComparison.Ordinal);
+                    public bool Equals([global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] {{typeToGenerate.Name}}? other)
+                        => other is not null && string.Equals(_value, other._value, global::System.StringComparison.Ordinal);
 
                     public override bool Equals(object? obj)
                         => obj is {{typeToGenerate.Name}} t && Equals(t);
 
                     public override int GetHashCode()
-                        => StringComparer.Ordinal.GetHashCode(_value);
+                        => global::System.StringComparer.Ordinal.GetHashCode(_value);
 
                     public static bool operator ==({{typeToGenerate.Name}}? left, {{typeToGenerate.Name}}? right)
                         => ReferenceEquals(left, right) || (left is not null && left.Equals(right));
 
-                    public static bool operator !=({{typeToGenerate.Name}}? left, {{typeToGenerate.Name}}? right) 
+                    public static bool operator !=({{typeToGenerate.Name}}? left, {{typeToGenerate.Name}}? right)
                         => !(left == right);
-                  
+
                     // String interop - optional but avoids allocations (compiler will generate a new instance of the type to do the comparison)
                     public static bool operator ==({{typeToGenerate.Name}}? left, string? right) => left?._value == right;
                     public static bool operator !=({{typeToGenerate.Name}}? left, string? right) => !(left == right);
@@ -51,17 +51,17 @@ internal static class StringGenerator
                     // null safe conversions
                     public static implicit operator string?({{typeToGenerate.Name}}? s)
                         => s?._value;
-                
+
                     public static implicit operator {{typeToGenerate.Name}}? (string? s)
                          => s is null ? null : new {{typeToGenerate.Name}}(s);
 
                     // Json serialization support
-                    public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
+                    public class JsonConverter : global::System.Text.Json.Serialization.JsonConverter<{{typeToGenerate.Name}}>
                     {
-                        public override {{typeToGenerate.Name}} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+                        public override {{typeToGenerate.Name}} Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options)
                             => new {{typeToGenerate.Name}}(reader.GetString()!);
 
-                        public override void Write(Utf8JsonWriter writer, {{typeToGenerate.Name}} value, JsonSerializerOptions options)
+                        public override void Write(global::System.Text.Json.Utf8JsonWriter writer, {{typeToGenerate.Name}} value, global::System.Text.Json.JsonSerializerOptions options)
                             => writer.WriteStringValue(value._value.ToString());
                     }
                 }
@@ -81,7 +81,7 @@ internal static class StringGenerator
                         // Max length check
                         if (value.Length > {{typeToGenerate.MaxLength}})
                         {
-                            throw new StrongTypes.MaxLengthException(typeof({{typeToGenerate.Name}}), {{typeToGenerate.MaxLength}}, value.Length);
+                            throw new global::StrongTypes.MaxLengthException(typeof({{typeToGenerate.Name}}), {{typeToGenerate.MaxLength}}, value.Length);
                         }
 
                 """;
@@ -98,11 +98,11 @@ internal static class StringGenerator
                         // Email validation
                         try
                         {
-                            _ = new System.Net.Mail.MailAddress(value);
+                            _ = new global::System.Net.Mail.MailAddress(value);
                         }
-                        catch (FormatException)
+                        catch (global::System.FormatException)
                         {
-                            throw new StrongTypes.EmailAddressFormatException();
+                            throw new global::StrongTypes.EmailAddressFormatException();
                         }
 
                 """;

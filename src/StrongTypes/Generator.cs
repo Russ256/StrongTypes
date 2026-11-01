@@ -108,7 +108,7 @@ public class Generator : IIncrementalGenerator
                     typeToGenerate.BaseTypeName = "int";
                     break;
                 case 1: // BaseType.Guid
-                    typeToGenerate.BaseTypeName = "System.Guid";
+                    typeToGenerate.BaseTypeName = "global::System.Guid";
                     break;
                 case 2: // BaseType.Uri
                     if (declaration is not ClassDeclarationSyntax)
@@ -116,7 +116,7 @@ public class Generator : IIncrementalGenerator
                         ReportDiagnostic("ST0002", "Only class supported for Uri type", location);
                         continue;
                     }
-                    typeToGenerate.BaseTypeName = "System.Uri";
+                    typeToGenerate.BaseTypeName = "global::System.Uri";
                     break;
                 case 3: // BaseType.String
                     typeToGenerate.BaseTypeName = "string";

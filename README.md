@@ -15,3 +15,6 @@ dotnet restore src/StrongTypes.slnx
 dotnet build src/StrongTypes.slnx --no-restore
 dotnet test src/StrongTypes.slnx --no-restore
 ```
+
+Solution builds also compile `src/StrongTypes.CompilationTests/`, which checks
+generated code with implicit usings disabled and conflicting local type names.

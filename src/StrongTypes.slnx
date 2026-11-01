@@ -6,5 +6,6 @@
     <File Path="../README.md" />
   </Folder>
   <Project Path="StrongTypes.Tests/StrongTypes.Tests.csproj" />
+  <Project Path="StrongTypes.CompilationTests/StrongTypes.CompilationTests.csproj" />
   <Project Path="StrongTypes/StrongTypes.csproj" />
 </Solution>
