@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 internal struct TypeToGenerate
 {
     internal string BaseTypeName { get; set; }
+    internal string HintName { get; set; }
 
     internal readonly string ClassOrStruct
     {

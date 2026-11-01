@@ -5,12 +5,9 @@ public class Attributes
     public const string Source = """
                                     namespace StrongTypes;
 
-                                    using System;
-                                    using System.Diagnostics;
-
-                                    [Conditional("Include_attributes")] // So not included in compiled application  
-                                    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = false)]
-                                    internal class StrongTypeAttribute : System.Attribute
+                                    [global::System.Diagnostics.ConditionalAttribute("Include_attributes")] // So not included in compiled application
+                                    [global::System.AttributeUsageAttribute(global::System.AttributeTargets.Struct | global::System.AttributeTargets.Class, AllowMultiple = false)]
+                                    internal class StrongTypeAttribute : global::System.Attribute
                                     {
                                         internal StrongTypeAttribute(BaseType baseType, int maxLength)
                                              : this(baseType)

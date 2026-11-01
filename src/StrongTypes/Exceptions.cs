@@ -5,25 +5,23 @@ public class Exceptions
     public const string Source = """
                                     namespace StrongTypes;
 
-                                    using System;
-
-                                    public class MaxLengthException : System.Exception
+                                    public class MaxLengthException : global::System.Exception
                                     {
-                                        public MaxLengthException(Type type, int maxLength, int stringLength)
+                                        public MaxLengthException(global::System.Type type, int maxLength, int stringLength)
                                              : base($"String of length {stringLength} exceeds the maximum of {maxLength} for type {type.Name}")
                                         {
                                             Type = type;
                                             MaxLength = maxLength;
-                                            StringLength = StringLength;
+                                            StringLength = stringLength;
                                         }
                                     
-                                        public Type Type { get; }
+                                        public global::System.Type Type { get; }
                                         public int MaxLength { get; }    
                                         public int StringLength { get; }
                                     
                                     }
 
-                                    public class EmailAddressFormatException : System.Exception
+                                    public class EmailAddressFormatException : global::System.Exception
                                     {
                                         public EmailAddressFormatException()
                                         {

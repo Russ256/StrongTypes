@@ -1,4 +1,4 @@
-﻿namespace StrongTypes.SourceGenerators;
+namespace StrongTypes.SourceGenerators;
 
 internal static class SourceGenerator
 {
@@ -6,8 +6,8 @@ internal static class SourceGenerator
     {
         return typeToGenerate.BaseTypeName switch
         {
-            "System.Uri" => UriGenerator.Generate(typeToGenerate),
-            "System.Guid" => GuidGenerator.Generate(typeToGenerate),
+            "global::System.Uri" => UriGenerator.Generate(typeToGenerate),
+            "global::System.Guid" => GuidGenerator.Generate(typeToGenerate),
             "int" => IntegerGenerator.Generate(typeToGenerate),
             "string" => StringGenerator.Generate(typeToGenerate),
             _ => null,
@@ -66,13 +66,13 @@ internal static class SourceGenerator
     {
         if (typeToGenerate.IsRecord)
         {
-            return $$"""
-                     public bool Equals([NotNullWhen(true)] {{typeToGenerate.Name}} other) => _value == other._value;
-                     """;
+            // Let the compiler synthesize null-safe equality, including record
+            // inheritance contracts and any additional user-declared state.
+            return string.Empty;
         }
 
         return $$"""
-                 public override bool Equals([NotNullWhen(true)] object? o)
+                 public override bool Equals([global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] object? o)
                  {
                      if (o is {{typeToGenerate.Name}} other)
                          return _value == other._value;
@@ -82,8 +82,13 @@ internal static class SourceGenerator
                  """;
     }
 
-    internal static string GenerateHash()
+    internal static string GenerateHash(TypeToGenerate typeToGenerate)
     {
+        if (typeToGenerate.IsRecord)
+        {
+            return string.Empty;
+        }
+
         return $$"""
                 public override int GetHashCode() => _value.GetHashCode();
                 """;
@@ -96,15 +101,11 @@ internal static class SourceGenerator
                 #nullable enable
 
                 namespace {{typeToGenerate.Namespace}};
-
-                using System.Diagnostics.CodeAnalysis;
-                using System.Text.Json.Serialization;
-                using System.Text.Json;
                 """;
     }
 
     internal static string GenerateType(TypeToGenerate typeToGenerate)
     {
-        return $"{typeToGenerate.Modifiers}{(typeToGenerate.IsRecord ? " record " : " ")}{typeToGenerate.ClassOrStruct} {typeToGenerate.Name} : IComparable<{typeToGenerate.Name}>, IParsable<{typeToGenerate.Name}>";
+        return $"{typeToGenerate.Modifiers}{(typeToGenerate.IsRecord ? " record " : " ")}{typeToGenerate.ClassOrStruct} {typeToGenerate.Name} : global::System.IComparable<{typeToGenerate.Name}>, global::System.IParsable<{typeToGenerate.Name}>";
     }
 }

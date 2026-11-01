@@ -1,4 +1,4 @@
-﻿namespace StrongTypes;
+namespace StrongTypes;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,13 +9,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using System.Threading;
 
 [Generator(LanguageNames.CSharp)]
 public class Generator : IIncrementalGenerator
 {
-    private static readonly string[] _supportedTypes = ["int", "System.Guid", "System.Uri", "string"];
-    private static SourceProductionContext _sourceProductionContext;
     internal const string _namespace = "StrongTypes";
     internal const string _attributeName = "StrongType";
 
@@ -47,175 +44,147 @@ public class Generator : IIncrementalGenerator
 
     private static void Execute(Compilation compilation, ImmutableArray<TypeDeclarationSyntax> typeDeclarations, SourceProductionContext context)
     {
-        _sourceProductionContext = context;
-
-        List<TypeToGenerate> endpointsToGenerate = GetTypesToGenerate(compilation, typeDeclarations.Distinct(), context.CancellationToken);
+        List<TypeToGenerate> endpointsToGenerate = GetTypesToGenerate(compilation, typeDeclarations.Distinct(), context);
 
         foreach (TypeToGenerate typeToGenerate in endpointsToGenerate)
         {
             string source = SourceGenerator.Generate(typeToGenerate);
-            context.AddSource($"{typeToGenerate.Name}.g.cs", source);
+            context.AddSource(typeToGenerate.HintName, source);
         }
     }
 
     private static TypeDeclarationSyntax GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
     {
-        // we know the node is a TypeDeclarationSyntax thanks to IsSyntaxTargetForGeneration
-        TypeDeclarationSyntax typeDeclarationSyntax = (TypeDeclarationSyntax)context.Node;
-
-        // loop through all the attributes on the method
-        foreach (AttributeListSyntax attributeListSyntax in typeDeclarationSyntax.AttributeLists)
-        {
-            foreach (AttributeSyntax attributeSyntax in attributeListSyntax.Attributes)
-            {
-                ISymbol attributeSymbol = context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol;
-
-                INamedTypeSymbol attributeContainingTypeSymbol = attributeSymbol.ContainingType;
-                string fullName = attributeContainingTypeSymbol.ToDisplayString();
-
-                // Is the attribute the [EnumExtensions] attribute?
-                if (fullName == "StrongTypes.StrongTypeAttribute")
-                {
-                    // Found it!
-                    return typeDeclarationSyntax;
-                }
-            }
-        }
-
-        // Nothing found
-        return null;
+        TypeDeclarationSyntax declaration = (TypeDeclarationSyntax)context.Node;
+        INamedTypeSymbol symbol = context.SemanticModel.GetDeclaredSymbol(declaration) as INamedTypeSymbol;
+        return symbol?.GetAttributes().Any(attribute => IsStrongTypeAttribute(attribute)
+            && attribute.ApplicationSyntaxReference?.SyntaxTree == declaration.SyntaxTree
+            && declaration.Span.Contains(attribute.ApplicationSyntaxReference.Span)) == true
+            ? declaration : null;
     }
 
-    private static List<TypeToGenerate> GetTypesToGenerate(Compilation compilation, IEnumerable<TypeDeclarationSyntax> types, CancellationToken ct)
-    {
-        List<TypeToGenerate> typesToGenerate = [];
+    private static bool IsStrongTypeAttribute(AttributeData attribute)
+        => attribute.AttributeClass?.ToDisplayString() == "StrongTypes.StrongTypeAttribute";
 
-        foreach (TypeDeclarationSyntax typeDeclaration in types)
+    private static List<TypeToGenerate> GetTypesToGenerate(Compilation compilation, IEnumerable<TypeDeclarationSyntax> types, SourceProductionContext context)
+    {
+        System.Threading.CancellationToken ct = context.CancellationToken;
+        List<TypeToGenerate> typesToGenerate = [];
+        foreach (TypeDeclarationSyntax declaration in types)
         {
             ct.ThrowIfCancellationRequested();
-
-            TypeToGenerate typeToGenerate = new()
+            INamedTypeSymbol symbol = compilation.GetSemanticModel(declaration.SyntaxTree)
+                .GetDeclaredSymbol(declaration, ct) as INamedTypeSymbol;
+            AttributeData attribute = symbol?.GetAttributes().FirstOrDefault(IsStrongTypeAttribute);
+            if (attribute == null || attribute.ConstructorArguments.Length == 0
+                || attribute.ConstructorArguments.Any(argument => argument.Kind == TypedConstantKind.Error))
             {
-                DeclarationSyntax = typeDeclaration,
-                Namespace = compilation.Namespace(typeDeclaration),
-            };
-
-            // Identify the type to generate
-            AttributeSyntax attr = compilation.GetAttribute(typeDeclaration, _attributeName);
-
-            // Get type from attribute
-            ExpressionSyntax baseTypeExpression = attr.ArgumentList.Arguments[0].Expression;
-
-            // Partial type check
-            if (!typeDeclaration.Modifiers.Any(td => td.Text == "partial"))
-            {
-                Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0003",
-                                       "Not Supported",
-                                       "Types must be defined partial",
-                                       "Strong Types",
-                                       DiagnosticSeverity.Error, true),
-                                       attr.ArgumentList.Arguments[0].GetLocation());
-
-                _sourceProductionContext.ReportDiagnostic(diagnostic);
+                // Invalid expressions already receive compiler diagnostics.
                 continue;
             }
 
-            // Identify type.
-            string baseType = baseTypeExpression.ToFullString();
-            if (baseType == "BaseType.Integer")
+            Location location = attribute.ApplicationSyntaxReference?.GetSyntax(ct).GetLocation()
+                ?? declaration.GetLocation();
+            if (!declaration.Modifiers.Any(modifier => modifier.Text == "partial"))
             {
-                typeToGenerate.BaseTypeName = "int";
+                ReportDiagnostic(context, "ST0003", "Types must be defined partial", location);
+                continue;
             }
-            else if (baseType == "BaseType.Guid")
-            {
-                typeToGenerate.BaseTypeName = "System.Guid";
-            }
-            else if (baseType == "BaseType.Uri")
-            {
-                if (typeDeclaration is not ClassDeclarationSyntax)
-                {
-                    Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0002",
-                                           "Not Supported",
-                                           "Only class supported for Uri type",
-                                           "Strong Types",
-                                           DiagnosticSeverity.Error, true),
-                                           attr.ArgumentList.Arguments[0].GetLocation());
 
-                    _sourceProductionContext.ReportDiagnostic(diagnostic);
+            if (symbol.ContainingNamespace.IsGlobalNamespace)
+            {
+                ReportDiagnostic(context, "ST0005", "Strong types must be declared in a namespace", location);
+                continue;
+            }
+            if (symbol.ContainingType != null)
+            {
+                ReportDiagnostic(context, "ST0006", "Nested strong types are not supported; declare the type at namespace scope", location);
+                continue;
+            }
+            if (symbol.Arity > 0)
+            {
+                ReportDiagnostic(context, "ST0007", "Generic strong types are not supported", location);
+                continue;
+            }
+
+            object baseType = attribute.ConstructorArguments[0].Value;
+            if ((baseType is 3 || baseType is 4) && declaration is not ClassDeclarationSyntax)
+            {
+                ReportDiagnostic(context, "ST0008", "String and email strong types must be declared as classes, not structs or records", location);
+                continue;
+            }
+
+            TypeToGenerate typeToGenerate = new()
+            {
+                DeclarationSyntax = declaration,
+                Namespace = compilation.Namespace(declaration),
+                HintName = GetHintName(symbol),
+            };
+
+            // Roslyn resolves aliases, constant expressions, and named argument order.
+            switch (attribute.ConstructorArguments[0].Value)
+            {
+                case 0: // BaseType.Integer
+                    typeToGenerate.BaseTypeName = "int";
+                    break;
+                case 1: // BaseType.Guid
+                    typeToGenerate.BaseTypeName = "global::System.Guid";
+                    break;
+                case 2: // BaseType.Uri
+                    if (declaration is not ClassDeclarationSyntax)
+                    {
+                        ReportDiagnostic(context, "ST0002", "Only class supported for Uri type", location);
+                        continue;
+                    }
+                    typeToGenerate.BaseTypeName = "global::System.Uri";
+                    break;
+                case 3: // BaseType.String
+                    typeToGenerate.BaseTypeName = "string";
+                    if (attribute.ConstructorArguments.Length > 1)
+                    {
+                        typeToGenerate.MaxLength = (int)attribute.ConstructorArguments[1].Value;
+                        if (typeToGenerate.MaxLength < 0)
+                        {
+                            ReportDiagnostic(context, "ST0004", "Maximum length must be non-negative", location);
+                            continue;
+                        }
+                    }
+                    break;
+                case 4: // BaseType.EmailAddress
+                    typeToGenerate.BaseTypeName = "string";
+                    typeToGenerate.IsEmail = true;
+                    typeToGenerate.MaxLength = 254;
+                    break;
+                default:
+                    ReportDiagnostic(context, "ST0001", "Base type is not supported", location);
                     continue;
-                }
-                else
-                {
-                    typeToGenerate.BaseTypeName = "System.Uri";
-                }
             }
-            else if (baseType == "BaseType.String")
-            {
-                typeToGenerate.BaseTypeName = "string";
-
-                if (attr.ArgumentList.Arguments.Count > 1)
-                {
-                    ExpressionSyntax mlExpression = attr.ArgumentList.Arguments[1].Expression;
-                    typeToGenerate.MaxLength = int.Parse(mlExpression.ToString());
-                }
-            }
-            else if (baseType == "BaseType.EmailAddress")
-            {
-                typeToGenerate.BaseTypeName = "string";
-                typeToGenerate.IsEmail = true;
-                typeToGenerate.MaxLength = 254; // Default max length for email addresses
-            }
-
-            //SemanticModel sm = compilation.GetSemanticModel(typeDeclaration.SyntaxTree);
-            //ITypeSymbol typeSymbol = sm.GetTypeInfo(expression.Type).Type;
-            //string type = typeSymbol.ToString();
-            //if (type == "System.Int32") type = "int";
-
-            //if (!_supportedTypes.Contains(type))
-            //{
-            //    Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0001",
-            //                           "Not Supported",
-            //                           "Type not supported",
-            //                           "Strong Types",
-            //                           DiagnosticSeverity.Error, true),
-            //                           attr.ArgumentList.Arguments[0].GetLocation());
-
-            //    _sourceProductionContext.ReportDiagnostic(diagnostic);
-            //    continue;
-            //}
-
-            //if (type == "System.Uri" && typeDeclaration is not ClassDeclarationSyntax)
-            //{
-            //    Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0002",
-            //                           "Not Supported",
-            //                           "Only class supported for Uri type",
-            //                           "Strong Types",
-            //                           DiagnosticSeverity.Error, true),
-            //                           attr.ArgumentList.Arguments[0].GetLocation());
-
-            //    _sourceProductionContext.ReportDiagnostic(diagnostic);
-            //    continue;
-            //}
-
-            //if (!typeDeclaration.Modifiers.Any(td => td.Text == "partial"))
-            //{
-            //    Diagnostic diagnostic = Diagnostic.Create(new DiagnosticDescriptor("ST0003",
-            //                           "Not Supported",
-            //                           "Types must be defined partial",
-            //                           "Strong Types",
-            //                           DiagnosticSeverity.Error, true),
-            //                           attr.ArgumentList.Arguments[0].GetLocation());
-
-            //    _sourceProductionContext.ReportDiagnostic(diagnostic);
-            //    continue;
-            //}
-
             typesToGenerate.Add(typeToGenerate);
         }
-
         return typesToGenerate;
     }
 
+    private static string GetHintName(INamedTypeSymbol symbol)
+    {
+        // Metadata names preserve generic arity; '+' distinguishes containing types
+        // from namespaces without introducing filesystem path separators.
+        Stack<string> typeNames = new();
+        for (INamedTypeSymbol type = symbol; type != null; type = type.ContainingType)
+        {
+            typeNames.Push(type.MetadataName);
+        }
+
+        string prefix = symbol.ContainingNamespace.IsGlobalNamespace
+            ? string.Empty : symbol.ContainingNamespace.ToDisplayString() + ".";
+        return prefix + string.Join("+", typeNames) + ".g.cs";
+    }
+
+    private static void ReportDiagnostic(SourceProductionContext context, string id, string message, Location location)
+    {
+        context.ReportDiagnostic(Diagnostic.Create(
+            new DiagnosticDescriptor(id, "Not Supported", message, "Strong Types", DiagnosticSeverity.Error, true),
+            location));
+    }
     private static bool IsSyntaxTargetForGeneration(SyntaxNode node)
     {
         return node is ClassDeclarationSyntax m && m.AttributeLists.Count > 0
@@ -227,7 +196,7 @@ public class Generator : IIncrementalGenerator
     {
         if (argumentList == null) return null;
 
-        foreach (var arg in argumentList.Arguments)
+        foreach (AttributeArgumentSyntax arg in argumentList.Arguments)
         {
             if (arg.NameEquals != null &&
                 string.Equals(arg.NameEquals.Name.Identifier.ValueText, name, StringComparison.OrdinalIgnoreCase))

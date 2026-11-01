@@ -1,4 +1,4 @@
-﻿namespace StrongTypes.SourceGenerators;
+namespace StrongTypes.SourceGenerators;
 
 internal static class UriGenerator
 {
@@ -7,7 +7,7 @@ internal static class UriGenerator
         string code = $$"""
                 {{SourceGenerator.GenerateHeader(typeToGenerate)}}
 
-                [JsonConverter(typeof(JsonConverter))]
+                [global::System.Text.Json.Serialization.JsonConverterAttribute(typeof(JsonConverter))]
                 {{typeToGenerate.Modifiers}} class {{typeToGenerate.Name}}
                 {
                     private readonly {{typeToGenerate.BaseTypeName}} _value;
@@ -15,30 +15,30 @@ internal static class UriGenerator
 
                     public {{typeToGenerate.Name}}({{typeToGenerate.BaseTypeName}} value)
                     {
-                        ArgumentNullException.ThrowIfNull(value, nameof(value));
+                        global::System.ArgumentNullException.ThrowIfNull(value, nameof(value));
 
                         _value = value;
                     }
 
                     public {{typeToGenerate.Name}}(string value)
                     {
-                        ArgumentNullException.ThrowIfNull(value, nameof(value));
+                        global::System.ArgumentNullException.ThrowIfNull(value, nameof(value));
 
-                        _value = new Uri(value);
+                        _value = new global::System.Uri(value);
                     }
 
                     public override string ToString() => _value.ToString();
 
-                    {{SourceGenerator.GenerateHash()}}
+                    {{SourceGenerator.GenerateHash(typeToGenerate)}}
                     {{SourceGenerator.GenerateEquals(typeToGenerate)}}
                     {{SourceGenerator.GenerateEqualOperators(typeToGenerate)}}
 
-                    public class JsonConverter : JsonConverter<{{typeToGenerate.Name}}>
+                    public class JsonConverter : global::System.Text.Json.Serialization.JsonConverter<{{typeToGenerate.Name}}>
                     {
-                        public override {{typeToGenerate.Name}} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+                        public override {{typeToGenerate.Name}} Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options)
                             => new {{typeToGenerate.Name}}(reader.GetString()!);
 
-                        public override void Write(Utf8JsonWriter writer, {{typeToGenerate.Name}} value, JsonSerializerOptions options)
+                        public override void Write(global::System.Text.Json.Utf8JsonWriter writer, {{typeToGenerate.Name}} value, global::System.Text.Json.JsonSerializerOptions options)
                             => writer.WriteStringValue(value._value.ToString());
                     }
                 }
