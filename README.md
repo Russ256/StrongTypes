@@ -18,3 +18,11 @@ dotnet test src/StrongTypes.slnx --no-restore
 
 Solution builds also compile `src/StrongTypes.CompilationTests/`, which checks
 generated code with implicit usings disabled and conflicting local type names.
+
+## Declaration requirements
+
+Strong types must be partial, non-generic types declared directly in a namespace.
+The generator reports errors for global-namespace (`ST0005`), nested (`ST0006`),
+and generic (`ST0007`) declarations. String and email types must be ordinary
+classes; structs and records receive `ST0008`. URI types also require ordinary
+classes (`ST0002`).

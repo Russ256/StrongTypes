@@ -94,6 +94,29 @@ public class Generator : IIncrementalGenerator
                 continue;
             }
 
+            if (symbol.ContainingNamespace.IsGlobalNamespace)
+            {
+                ReportDiagnostic("ST0005", "Strong types must be declared in a namespace", location);
+                continue;
+            }
+            if (symbol.ContainingType != null)
+            {
+                ReportDiagnostic("ST0006", "Nested strong types are not supported; declare the type at namespace scope", location);
+                continue;
+            }
+            if (symbol.Arity > 0)
+            {
+                ReportDiagnostic("ST0007", "Generic strong types are not supported", location);
+                continue;
+            }
+
+            object baseType = attribute.ConstructorArguments[0].Value;
+            if ((baseType is 3 || baseType is 4) && declaration is not ClassDeclarationSyntax)
+            {
+                ReportDiagnostic("ST0008", "String and email strong types must be declared as classes, not structs or records", location);
+                continue;
+            }
+
             TypeToGenerate typeToGenerate = new()
             {
                 DeclarationSyntax = declaration,
