@@ -20,7 +20,16 @@ This repository is a generator library; local development centers on building an
 
 ## Coding Style & Naming Conventions
 
-Follow existing C# style: four-space indentation, braces on separate lines, file-scoped namespaces, PascalCase types and members, camelCase parameters and locals, and underscore-prefixed private fields. Prefer explicit local types where existing code does. Keep emitted C# templates consistent with surrounding raw string literals. Edit generator sources rather than generated `.g.cs` output.
+- four-space indentation,
+- braces on separate lines,
+- file-scoped namespaces,
+- PascalCase types and members,
+- camelCase parameters and locals, 
+- underscore-prefixed private fields. 
+- Prefer explicit local types where existing code does. 
+- Keep emitted C# templates consistent with surrounding raw string literals. 
+- Edit generator sources rather than generated `.g.cs` output.
+- Do not use `var`; use explicit types for clarity.
 
 Roslyn analyzer rules are enabled, including extended analyzer rules. No repository-wide formatter configuration is checked in.
 
