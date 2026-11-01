@@ -42,7 +42,7 @@ internal static class IntegerGenerator
                                     return false;
                                 }
 
-                                if ({{typeToGenerate.BaseTypeName}}.TryParse(s, out {{typeToGenerate.BaseTypeName}} parsedValue))
+                                if ({{typeToGenerate.BaseTypeName}}.TryParse(s, global::System.Globalization.NumberStyles.Integer, provider, out {{typeToGenerate.BaseTypeName}} parsedValue))
                                 {
                                     result = new {{typeToGenerate.Name}}(parsedValue);
                                     return true;

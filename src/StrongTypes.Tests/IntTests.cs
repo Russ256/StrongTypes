@@ -1,6 +1,7 @@
 namespace StrongTypes.Tests;
 
 using FluentAssertions;
+using System.Globalization;
 using System.Text.Json;
 
 [StrongType(BaseType.Integer)]
@@ -16,6 +17,44 @@ public readonly partial struct TestInt
 [TestClass]
 public class IntTests
 {
+    [TestMethod]
+    public void Parse_With_Custom_Provider_Should_Use_Its_Negative_Sign()
+    {
+        // Arrange
+        NumberFormatInfo provider = new() { NegativeSign = "minus" };
+
+        // Act
+        TestInt result = TestInt.Parse("minus42", provider);
+
+        // Assert
+        result.Value.Should().Be(-42);
+    }
+
+    [TestMethod]
+    public void TryParse_With_Custom_Provider_Should_Use_Its_Negative_Sign()
+    {
+        // Arrange
+        NumberFormatInfo provider = new() { NegativeSign = "minus" };
+
+        // Act
+        bool success = TestInt.TryParse("minus42", provider, out TestInt result);
+
+        // Assert
+        success.Should().BeTrue();
+        result.Value.Should().Be(-42);
+    }
+
+    [TestMethod]
+    public void TryParse_With_Invariant_Provider_Should_Reject_Custom_Negative_Sign()
+    {
+        // Act
+        bool success = TestInt.TryParse("minus42", CultureInfo.InvariantCulture, out TestInt result);
+
+        // Assert
+        success.Should().BeFalse();
+        result.Should().Be(default(TestInt));
+    }
+
     [TestMethod]
     public void Constructor_Should_Set_Value()
     {
