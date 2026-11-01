@@ -34,6 +34,10 @@ Static classes (`ST0011`), abstract classes or records (`ST0012`), and ref struc
 (`ST0013`) are unsupported. Use a concrete instance class, ordinary struct, or
 supported record type instead. These checks include modifiers on other partial
 declarations of the same type.
+Type names that conflict with generated public members (for example, `Value`,
+or `Parse` for integer/GUID types) are rejected with `ST0014`. Rename the type
+to resolve the conflict. Generated backing fields and JSON converter helpers
+automatically choose an unused name, so types named `JsonConverter` are supported.
 
 String and email equality operators compare instances of the same generated type
 and support null literals on either side. Comparisons with raw strings use the

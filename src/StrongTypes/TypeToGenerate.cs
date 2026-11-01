@@ -6,6 +6,8 @@ internal struct TypeToGenerate
 {
     internal string BaseTypeName { get; set; }
     internal string HintName { get; set; }
+    internal string ValueFieldName { get; set; }
+    internal string ConverterName { get; set; }
 
     internal readonly string ClassOrStruct
     {

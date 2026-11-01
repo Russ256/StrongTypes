@@ -71,6 +71,16 @@ public class DeclarationDiagnosticTests
     [DataRow("namespace Example { [StrongType(BaseType.Integer)] public abstract partial record Id; }", "ST0012")]
     [DataRow("namespace Example { [StrongType(BaseType.Integer)] public ref partial struct Id { } }", "ST0013")]
     [DataRow("namespace Example { [StrongType(BaseType.Guid)] public readonly ref partial struct Id { } }", "ST0013")]
+    [DataRow("namespace Example { [StrongType(BaseType.Integer)] public partial struct Value { } }", "ST0014")]
+    [DataRow("namespace Example { [StrongType(BaseType.String)] public partial class @Value { } }", "ST0014")]
+    [DataRow("namespace Example { [StrongType(BaseType.Uri)] public partial class Equals { } }", "ST0014")]
+    [DataRow("namespace Example { [StrongType(BaseType.Integer)] public partial struct ToString { } }", "ST0014")]
+    [DataRow("namespace Example { [StrongType(BaseType.Guid)] public partial struct GetHashCode { } }", "ST0014")]
+    [DataRow("namespace Example { [StrongType(BaseType.Integer)] public partial struct Parse { } }", "ST0014")]
+    [DataRow("namespace Example { [StrongType(BaseType.Guid)] public partial struct TryParse { } }", "ST0014")]
+    [DataRow("namespace Example { [StrongType(BaseType.Integer)] public partial struct CompareTo { } }", "ST0014")]
+    [DataRow("namespace Example { [StrongType(BaseType.Guid)] public partial struct New { } }", "ST0014")]
+    [DataRow("namespace Example { [StrongType(BaseType.Guid)] public partial record struct Empty { } }", "ST0014")]
     public void Unsupported_Declaration_Should_Report_Diagnostic_Without_Emitting_Type(string declaration, string diagnosticId)
     {
         // Arrange

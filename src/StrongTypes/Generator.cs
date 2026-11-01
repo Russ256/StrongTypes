@@ -148,6 +148,8 @@ public class Generator : IIncrementalGenerator
                 DeclarationSyntax = declaration,
                 Namespace = compilation.Namespace(declaration),
                 HintName = GetHintName(symbol),
+                ValueFieldName = GetAvailableMemberName(symbol, "_value"),
+                ConverterName = GetAvailableMemberName(symbol, "JsonConverter"),
             };
 
             // Roslyn resolves aliases, constant expressions, and named argument order.
@@ -188,9 +190,41 @@ public class Generator : IIncrementalGenerator
                     ReportDiagnostic(context, "ST0001", "Base type is not supported", location);
                     continue;
             }
+            if (ConflictsWithPublicMemberName(symbol.Name, typeToGenerate))
+            {
+                ReportDiagnostic(context, "ST0014",
+                    $"Strong type name '{symbol.Name}' conflicts with a generated public member; rename the type", location);
+                continue;
+            }
+
             typesToGenerate.Add(typeToGenerate);
         }
         return typesToGenerate;
+    }
+
+    private static bool ConflictsWithPublicMemberName(string name, TypeToGenerate type)
+    {
+        if (name is "Value" or "ToString" or "Equals" or "GetHashCode")
+        {
+            return true;
+        }
+        if (type.BaseTypeName is "int" or "global::System.Guid"
+            && name is "Parse" or "TryParse" or "CompareTo")
+        {
+            return true;
+        }
+        return type.BaseTypeName == "global::System.Guid" && name is "New" or "Empty";
+    }
+
+    private static string GetAvailableMemberName(INamedTypeSymbol symbol, string preferredName)
+    {
+        string name = preferredName;
+        int suffix = 0;
+        while (name == symbol.Name || symbol.GetMembers(name).Length > 0)
+        {
+            name = preferredName + (++suffix).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+        return name;
     }
 
     private static string GetHintName(INamedTypeSymbol symbol)
