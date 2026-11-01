@@ -24,7 +24,7 @@ internal static class SourceGenerator
         if (typeToGenerate.IsClass)
         {
             return $$"""
-                public static bool operator == ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b)
+                public static bool operator == ({{typeToGenerate.NullableName}} a, {{typeToGenerate.NullableName}} b)
                 {
                     if (a is null && b is null)
                     {
@@ -36,10 +36,10 @@ internal static class SourceGenerator
                         return false;
                     }
 
-                    return a._value == b._value;
+                    return a.{{typeToGenerate.ValueFieldName}} == b.{{typeToGenerate.ValueFieldName}};
                 }
 
-                public static bool operator != ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b)
+                public static bool operator != ({{typeToGenerate.NullableName}} a, {{typeToGenerate.NullableName}} b)
                 {
                     if (a is null && b is null)
                     {
@@ -51,14 +51,14 @@ internal static class SourceGenerator
                         return true;
                     }
 
-                    return a._value != b._value;
+                    return a.{{typeToGenerate.ValueFieldName}} != b.{{typeToGenerate.ValueFieldName}};
                 }
                 """;
         }
 
         return $$"""
-                public static bool operator == ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b) => a._value == b!._value;
-                public static bool operator != ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b) => a._value != b._value;
+                public static bool operator == ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b) => a.{{typeToGenerate.ValueFieldName}} == b!.{{typeToGenerate.ValueFieldName}};
+                public static bool operator != ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b) => a.{{typeToGenerate.ValueFieldName}} != b.{{typeToGenerate.ValueFieldName}};
                 """;
     }
 
@@ -75,11 +75,18 @@ internal static class SourceGenerator
                  public override bool Equals([global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] object? o)
                  {
                      if (o is {{typeToGenerate.Name}} other)
-                         return _value == other._value;
+                         return {{typeToGenerate.ValueFieldName}} == other.{{typeToGenerate.ValueFieldName}};
 
                      return false;
                  }
                  """;
+    }
+
+    internal static string GenerateCompareTo(TypeToGenerate typeToGenerate)
+    {
+        return typeToGenerate.IsReferenceType
+            ? $"public int CompareTo({typeToGenerate.NullableName} other) => other is null ? 1 : {typeToGenerate.ValueFieldName}.CompareTo(other.{typeToGenerate.ValueFieldName});"
+            : $"public int CompareTo({typeToGenerate.Name} other) => {typeToGenerate.ValueFieldName}.CompareTo(other.{typeToGenerate.ValueFieldName});";
     }
 
     internal static string GenerateHash(TypeToGenerate typeToGenerate)
@@ -90,7 +97,7 @@ internal static class SourceGenerator
         }
 
         return $$"""
-                public override int GetHashCode() => _value.GetHashCode();
+                public override int GetHashCode() => {{typeToGenerate.ValueFieldName}}.GetHashCode();
                 """;
     }
 

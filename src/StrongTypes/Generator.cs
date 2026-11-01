@@ -23,11 +23,6 @@ public class Generator : IIncrementalGenerator
                                                         "StrongTypes.Attributes.g.cs",
                                                         SourceText.From(Attributes.Source, Encoding.UTF8)));
 
-        // Add our exceptions to the project
-        context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
-                                                        "StrongTypes.Exceptions.g.cs",
-                                                        SourceText.From(Exceptions.Source, Encoding.UTF8)));
-
         // Create a simple filter for class
         IncrementalValuesProvider<TypeDeclarationSyntax> typesProvider = context.SyntaxProvider
             .CreateSyntaxProvider(
@@ -91,6 +86,35 @@ public class Generator : IIncrementalGenerator
                 continue;
             }
 
+            if (symbol.IsFileLocal)
+            {
+                ReportDiagnostic(context, "ST0009", "File-local strong types are not supported; remove the file modifier", location);
+                continue;
+            }
+
+            if (symbol.IsStatic)
+            {
+                ReportDiagnostic(context, "ST0011", "Static strong types are not supported; remove the static modifier", location);
+                continue;
+            }
+            if (symbol.IsAbstract)
+            {
+                ReportDiagnostic(context, "ST0012", "Abstract strong types are not supported; remove the abstract modifier", location);
+                continue;
+            }
+            if (symbol.IsRefLikeType)
+            {
+                ReportDiagnostic(context, "ST0013", "Ref struct strong types are not supported; remove the ref modifier", location);
+                continue;
+            }
+
+            if (symbol.DeclaringSyntaxReferences.Any(reference =>
+                reference.GetSyntax(ct) is TypeDeclarationSyntax type && type.ParameterList != null))
+            {
+                ReportDiagnostic(context, "ST0010", "Primary constructors are not supported for strong types; remove the parameter list", location);
+                continue;
+            }
+
             if (symbol.ContainingNamespace.IsGlobalNamespace)
             {
                 ReportDiagnostic(context, "ST0005", "Strong types must be declared in a namespace", location);
@@ -119,6 +143,8 @@ public class Generator : IIncrementalGenerator
                 DeclarationSyntax = declaration,
                 Namespace = compilation.Namespace(declaration),
                 HintName = GetHintName(symbol),
+                ValueFieldName = GetAvailableMemberName(symbol, "_value"),
+                ConverterName = GetAvailableMemberName(symbol, "JsonConverter"),
             };
 
             // Roslyn resolves aliases, constant expressions, and named argument order.
@@ -159,9 +185,41 @@ public class Generator : IIncrementalGenerator
                     ReportDiagnostic(context, "ST0001", "Base type is not supported", location);
                     continue;
             }
+            if (ConflictsWithPublicMemberName(symbol.Name, typeToGenerate))
+            {
+                ReportDiagnostic(context, "ST0014",
+                    $"Strong type name '{symbol.Name}' conflicts with a generated public member; rename the type", location);
+                continue;
+            }
+
             typesToGenerate.Add(typeToGenerate);
         }
         return typesToGenerate;
+    }
+
+    private static bool ConflictsWithPublicMemberName(string name, TypeToGenerate type)
+    {
+        if (name is "Value" or "ToString" or "Equals" or "GetHashCode")
+        {
+            return true;
+        }
+        if (type.BaseTypeName is "int" or "global::System.Guid"
+            && name is "Parse" or "TryParse" or "CompareTo")
+        {
+            return true;
+        }
+        return type.BaseTypeName == "global::System.Guid" && name is "New" or "Empty";
+    }
+
+    private static string GetAvailableMemberName(INamedTypeSymbol symbol, string preferredName)
+    {
+        string name = preferredName;
+        int suffix = 0;
+        while (name == symbol.Name || symbol.GetMembers(name).Length > 0)
+        {
+            name = preferredName + (++suffix).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+        return name;
     }
 
     private static string GetHintName(INamedTypeSymbol symbol)

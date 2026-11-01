@@ -67,6 +67,8 @@ public class AttributeTests
         Action action = () => _ = new ConstantLengthString("abcd");
 
         // Act / Assert
-        action.Should().Throw<MaxLengthException>().Which.MaxLength.Should().Be(3);
+        action.Should().ThrowExactly<ArgumentException>()
+            .WithMessage("String of length 4 exceeds the maximum of 3 for type ConstantLengthString*")
+            .Which.ParamName.Should().Be("value");
     }
 }

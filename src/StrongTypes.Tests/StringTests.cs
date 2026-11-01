@@ -17,6 +17,21 @@ public partial class TestStringLength
 public class StringTests
 {
     [TestMethod]
+    [DataRow(null, true)]
+    [DataRow("value", false)]
+    public void Null_Literal_Equality_Should_Work_In_Both_Directions(string? value, bool expected)
+    {
+        // Arrange
+        TestString? sut = value;
+
+        // Assert
+        (sut == null).Should().Be(expected);
+        (null == sut).Should().Be(expected);
+        (sut != null).Should().Be(!expected);
+        (null != sut).Should().Be(!expected);
+    }
+
+    [TestMethod]
     public void Assignment_To_String_Should_Succeed()
     {
         // Arrange
@@ -37,13 +52,11 @@ public class StringTests
         Action action = () => _ = new TestStringLength(testString);
 
         // Act
-        MaxLengthException exception = action.Should().Throw<MaxLengthException>()
-            .WithMessage($"String of length {testString.Length} exceeds the maximum of 3 for type TestStringLength").Which;
+        ArgumentException exception = action.Should().ThrowExactly<ArgumentException>()
+            .WithMessage($"String of length {testString.Length} exceeds the maximum of 3 for type TestStringLength*").Which;
 
         // Assert
-        exception.Type.Should().Be(typeof(TestStringLength));
-        exception.MaxLength.Should().Be(3);
-        exception.StringLength.Should().Be(testString.Length);
+        exception.ParamName.Should().Be("value");
     }
 
     [TestMethod]

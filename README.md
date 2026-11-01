@@ -25,7 +25,36 @@ Strong types must be partial, non-generic types declared directly in a namespace
 The generator reports errors for global-namespace (`ST0005`), nested (`ST0006`),
 and generic (`ST0007`) declarations. String and email types must be ordinary
 classes; structs and records receive `ST0008`. URI types also require ordinary
-classes (`ST0002`).
+classes (`ST0002`). File-local types are rejected with `ST0009`; remove the
+`file` modifier to allow generation in a separate source file.
+Primary constructors, including positional record declarations and empty
+parameter lists, are rejected with `ST0010`. Remove the primary-constructor
+parameter list and use the generated value constructors instead.
+Static classes (`ST0011`), abstract classes or records (`ST0012`), and ref structs
+(`ST0013`) are unsupported. Use a concrete instance class, ordinary struct, or
+supported record type instead. These checks include modifiers on other partial
+declarations of the same type.
+Type names that conflict with generated public members (for example, `Value`,
+or `Parse` for integer/GUID types) are rejected with `ST0014`. Rename the type
+to resolve the conflict. Generated backing fields and JSON converter helpers
+automatically choose an unused name, so types named `JsonConverter` are supported.
+
+String and email equality operators compare instances of the same generated type
+and support null literals on either side. Comparisons with raw strings use the
+implicit conversion to the strong type, including its constructor validation.
+Compare `.Value` directly when checking unvalidated text without creating a wrapper.
+
+## Validation exceptions
+
+Length violations throw `System.ArgumentException` with `ParamName` set to
+`value` and the actual length, maximum length, and type name in the message.
+Invalid emails throw `System.FormatException`; null constructor arguments still
+throw `System.ArgumentNullException`.
+
+These standard exceptions replace the generated `MaxLengthException` and
+`EmailAddressFormatException`. Update existing catch clauses accordingly.
+No public exception types are injected into consuming assemblies, so callers
+can catch the same standard types across library boundaries.
 
 ## Continuous integration
 
