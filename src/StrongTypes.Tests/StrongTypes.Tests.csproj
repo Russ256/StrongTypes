@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
+    <ProjectReference Include="..\StrongTypes.CompilationTests\StrongTypes.CompilationTests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

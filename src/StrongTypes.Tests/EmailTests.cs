@@ -46,7 +46,7 @@ public class EmailTests
         Action action = () => _ = new TestEmail(value);
 
         // Act
-        action.Should().Throw<EmailAddressFormatException>();
+        action.Should().ThrowExactly<FormatException>().WithMessage("Value is not a valid email address.");
     }
 
     [TestMethod]
@@ -56,7 +56,7 @@ public class EmailTests
         Action action = () => { TestEmail? email = string.Empty; };
 
         // Act / Assert
-        action.Should().Throw<EmailAddressFormatException>();
+        action.Should().ThrowExactly<FormatException>().WithMessage("Value is not a valid email address.");
     }
 
     [TestMethod]

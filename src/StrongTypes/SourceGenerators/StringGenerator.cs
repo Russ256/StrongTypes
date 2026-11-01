@@ -75,7 +75,7 @@ internal static class StringGenerator
                         // Max length check
                         if (value.Length > {{typeToGenerate.MaxLength}})
                         {
-                            throw new global::StrongTypes.MaxLengthException(typeof({{typeToGenerate.Name}}), {{typeToGenerate.MaxLength}}, value.Length);
+                            throw new global::System.ArgumentException($"String of length {value.Length} exceeds the maximum of {{typeToGenerate.MaxLength}} for type {{typeToGenerate.Name}}", nameof(value));
                         }
 
                 """;
@@ -92,16 +92,16 @@ internal static class StringGenerator
                         // Email validation
                         if (value.Length == 0)
                         {
-                            throw new global::StrongTypes.EmailAddressFormatException();
+                            throw new global::System.FormatException("Value is not a valid email address.");
                         }
 
                         try
                         {
                             _ = new global::System.Net.Mail.MailAddress(value);
                         }
-                        catch (global::System.FormatException)
+                        catch (global::System.FormatException exception)
                         {
-                            throw new global::StrongTypes.EmailAddressFormatException();
+                            throw new global::System.FormatException("Value is not a valid email address.", exception);
                         }
 
                 """;

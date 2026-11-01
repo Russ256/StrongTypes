@@ -44,6 +44,18 @@ and support null literals on either side. Comparisons with raw strings use the
 implicit conversion to the strong type, including its constructor validation.
 Compare `.Value` directly when checking unvalidated text without creating a wrapper.
 
+## Validation exceptions
+
+Length violations throw `System.ArgumentException` with `ParamName` set to
+`value` and the actual length, maximum length, and type name in the message.
+Invalid emails throw `System.FormatException`; null constructor arguments still
+throw `System.ArgumentNullException`.
+
+These standard exceptions replace the generated `MaxLengthException` and
+`EmailAddressFormatException`. Update existing catch clauses accordingly.
+No public exception types are injected into consuming assemblies, so callers
+can catch the same standard types across library boundaries.
+
 ## Continuous integration
 
 GitHub Actions runs Release builds and tests on Windows and Linux for pushes

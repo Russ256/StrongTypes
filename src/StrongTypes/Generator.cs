@@ -23,11 +23,6 @@ public class Generator : IIncrementalGenerator
                                                         "StrongTypes.Attributes.g.cs",
                                                         SourceText.From(Attributes.Source, Encoding.UTF8)));
 
-        // Add our exceptions to the project
-        context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
-                                                        "StrongTypes.Exceptions.g.cs",
-                                                        SourceText.From(Exceptions.Source, Encoding.UTF8)));
-
         // Create a simple filter for class
         IncrementalValuesProvider<TypeDeclarationSyntax> typesProvider = context.SyntaxProvider
             .CreateSyntaxProvider(

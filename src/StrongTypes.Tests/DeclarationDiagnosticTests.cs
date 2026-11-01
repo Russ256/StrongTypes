@@ -37,7 +37,7 @@ public class DeclarationDiagnosticTests
             result.Diagnostics.Should().OnlyContain(diagnostic =>
                 diagnostic.Id == (index % 2 == 0 ? "ST0003" : "ST0007")
                 && ReferenceEquals(diagnostic.Location.SourceTree, source));
-            result.GeneratedSources.Should().HaveCount(2);
+            result.GeneratedSources.Should().HaveCount(1);
         }))];
 
         // Act
@@ -102,7 +102,7 @@ public class DeclarationDiagnosticTests
         diagnostic.Location.SourceTree.Should().BeSameAs(source);
         source.GetText().ToString(diagnostic.Location.SourceSpan).Should().StartWith("StrongType(BaseType.");
         result.GeneratedSources.Select(generated => generated.HintName).Should().BeEquivalentTo(
-            "StrongTypes.Attributes.g.cs", "StrongTypes.Exceptions.g.cs");
+            "StrongTypes.Attributes.g.cs");
     }
 
     [TestMethod]
@@ -127,7 +127,7 @@ public class DeclarationDiagnosticTests
         result.Exception.Should().BeNull();
         result.Diagnostics.Should().ContainSingle().Which.Id.Should().Be("ST0009");
         result.GeneratedSources.Select(generated => generated.HintName).Should().BeEquivalentTo(
-            "StrongTypes.Attributes.g.cs", "StrongTypes.Exceptions.g.cs", "Example.PublicId.g.cs");
+            "StrongTypes.Attributes.g.cs", "Example.PublicId.g.cs");
     }
 
     [TestMethod]
@@ -159,7 +159,7 @@ public class DeclarationDiagnosticTests
         diagnostic.Severity.Should().Be(DiagnosticSeverity.Error);
         diagnostic.Location.SourceTree.Should().BeSameAs(annotatedSource);
         result.GeneratedSources.Select(generated => generated.HintName).Should().BeEquivalentTo(
-            "StrongTypes.Attributes.g.cs", "StrongTypes.Exceptions.g.cs", "Example.ValidId.g.cs");
+            "StrongTypes.Attributes.g.cs", "Example.ValidId.g.cs");
     }
 
     [TestMethod]
@@ -193,6 +193,6 @@ public class DeclarationDiagnosticTests
         diagnostic.Severity.Should().Be(DiagnosticSeverity.Error);
         diagnostic.Location.SourceTree.Should().BeSameAs(annotatedSource);
         result.GeneratedSources.Select(generated => generated.HintName).Should().BeEquivalentTo(
-            "StrongTypes.Attributes.g.cs", "StrongTypes.Exceptions.g.cs", "Example.ValidId.g.cs");
+            "StrongTypes.Attributes.g.cs", "Example.ValidId.g.cs");
     }
 }
