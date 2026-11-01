@@ -9,12 +9,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using System.Threading;
 
 [Generator(LanguageNames.CSharp)]
 public class Generator : IIncrementalGenerator
 {
-    private static SourceProductionContext _sourceProductionContext;
     internal const string _namespace = "StrongTypes";
     internal const string _attributeName = "StrongType";
 
@@ -46,9 +44,7 @@ public class Generator : IIncrementalGenerator
 
     private static void Execute(Compilation compilation, ImmutableArray<TypeDeclarationSyntax> typeDeclarations, SourceProductionContext context)
     {
-        _sourceProductionContext = context;
-
-        List<TypeToGenerate> endpointsToGenerate = GetTypesToGenerate(compilation, typeDeclarations.Distinct(), context.CancellationToken);
+        List<TypeToGenerate> endpointsToGenerate = GetTypesToGenerate(compilation, typeDeclarations.Distinct(), context);
 
         foreach (TypeToGenerate typeToGenerate in endpointsToGenerate)
         {
@@ -70,8 +66,9 @@ public class Generator : IIncrementalGenerator
     private static bool IsStrongTypeAttribute(AttributeData attribute)
         => attribute.AttributeClass?.ToDisplayString() == "StrongTypes.StrongTypeAttribute";
 
-    private static List<TypeToGenerate> GetTypesToGenerate(Compilation compilation, IEnumerable<TypeDeclarationSyntax> types, CancellationToken ct)
+    private static List<TypeToGenerate> GetTypesToGenerate(Compilation compilation, IEnumerable<TypeDeclarationSyntax> types, SourceProductionContext context)
     {
+        System.Threading.CancellationToken ct = context.CancellationToken;
         List<TypeToGenerate> typesToGenerate = [];
         foreach (TypeDeclarationSyntax declaration in types)
         {
@@ -90,30 +87,30 @@ public class Generator : IIncrementalGenerator
                 ?? declaration.GetLocation();
             if (!declaration.Modifiers.Any(modifier => modifier.Text == "partial"))
             {
-                ReportDiagnostic("ST0003", "Types must be defined partial", location);
+                ReportDiagnostic(context, "ST0003", "Types must be defined partial", location);
                 continue;
             }
 
             if (symbol.ContainingNamespace.IsGlobalNamespace)
             {
-                ReportDiagnostic("ST0005", "Strong types must be declared in a namespace", location);
+                ReportDiagnostic(context, "ST0005", "Strong types must be declared in a namespace", location);
                 continue;
             }
             if (symbol.ContainingType != null)
             {
-                ReportDiagnostic("ST0006", "Nested strong types are not supported; declare the type at namespace scope", location);
+                ReportDiagnostic(context, "ST0006", "Nested strong types are not supported; declare the type at namespace scope", location);
                 continue;
             }
             if (symbol.Arity > 0)
             {
-                ReportDiagnostic("ST0007", "Generic strong types are not supported", location);
+                ReportDiagnostic(context, "ST0007", "Generic strong types are not supported", location);
                 continue;
             }
 
             object baseType = attribute.ConstructorArguments[0].Value;
             if ((baseType is 3 || baseType is 4) && declaration is not ClassDeclarationSyntax)
             {
-                ReportDiagnostic("ST0008", "String and email strong types must be declared as classes, not structs or records", location);
+                ReportDiagnostic(context, "ST0008", "String and email strong types must be declared as classes, not structs or records", location);
                 continue;
             }
 
@@ -136,7 +133,7 @@ public class Generator : IIncrementalGenerator
                 case 2: // BaseType.Uri
                     if (declaration is not ClassDeclarationSyntax)
                     {
-                        ReportDiagnostic("ST0002", "Only class supported for Uri type", location);
+                        ReportDiagnostic(context, "ST0002", "Only class supported for Uri type", location);
                         continue;
                     }
                     typeToGenerate.BaseTypeName = "global::System.Uri";
@@ -148,7 +145,7 @@ public class Generator : IIncrementalGenerator
                         typeToGenerate.MaxLength = (int)attribute.ConstructorArguments[1].Value;
                         if (typeToGenerate.MaxLength < 0)
                         {
-                            ReportDiagnostic("ST0004", "Maximum length must be non-negative", location);
+                            ReportDiagnostic(context, "ST0004", "Maximum length must be non-negative", location);
                             continue;
                         }
                     }
@@ -159,7 +156,7 @@ public class Generator : IIncrementalGenerator
                     typeToGenerate.MaxLength = 254;
                     break;
                 default:
-                    ReportDiagnostic("ST0001", "Base type is not supported", location);
+                    ReportDiagnostic(context, "ST0001", "Base type is not supported", location);
                     continue;
             }
             typesToGenerate.Add(typeToGenerate);
@@ -182,9 +179,9 @@ public class Generator : IIncrementalGenerator
         return prefix + string.Join("+", typeNames) + ".g.cs";
     }
 
-    private static void ReportDiagnostic(string id, string message, Location location)
+    private static void ReportDiagnostic(SourceProductionContext context, string id, string message, Location location)
     {
-        _sourceProductionContext.ReportDiagnostic(Diagnostic.Create(
+        context.ReportDiagnostic(Diagnostic.Create(
             new DiagnosticDescriptor(id, "Not Supported", message, "Strong Types", DiagnosticSeverity.Error, true),
             location));
     }

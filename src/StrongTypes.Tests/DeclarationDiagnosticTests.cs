@@ -4,11 +4,47 @@ using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Linq;
+using System.Threading.Tasks;
 
 [TestClass]
-[DoNotParallelize]
 public class DeclarationDiagnosticTests
 {
+    [TestMethod]
+    public async Task Concurrent_Compilations_Should_Report_Diagnostics_To_Their_Own_Context()
+    {
+        // Arrange
+        Generator generator = new();
+        TaskCompletionSource start = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        Task[] runs = [.. Enumerable.Range(0, 8).Select(index => Task.Run(async () =>
+        {
+            string declarations = string.Join(" ", Enumerable.Range(0, 32).Select(typeIndex =>
+                index % 2 == 0
+                    ? $"[StrongType(BaseType.Integer)] public struct Id{typeIndex} {{ }}"
+                    : $"[StrongType(BaseType.Integer)] public partial struct Id{typeIndex}<T> {{ }}"));
+            SyntaxTree source = CSharpSyntaxTree.ParseText(
+                $"using StrongTypes; namespace Example{index} {{ {declarations} }}");
+            CSharpCompilation compilation = CSharpCompilation.Create($"ConcurrentProbe{index}", [source],
+                [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)],
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(generator.AsSourceGenerator());
+            await start.Task;
+
+            GeneratorRunResult result = driver.RunGenerators(compilation).GetRunResult().Results.Single();
+
+            // Assert each compilation receives only its own diagnostics.
+            result.Exception.Should().BeNull();
+            result.Diagnostics.Should().HaveCount(32);
+            result.Diagnostics.Should().OnlyContain(diagnostic =>
+                diagnostic.Id == (index % 2 == 0 ? "ST0003" : "ST0007")
+                && ReferenceEquals(diagnostic.Location.SourceTree, source));
+            result.GeneratedSources.Should().HaveCount(2);
+        }))];
+
+        // Act
+        start.SetResult();
+        await Task.WhenAll(runs);
+    }
+
     [TestMethod]
     [DataRow("[StrongType(BaseType.Integer)] public partial struct Id { }", "ST0005")]
     [DataRow("namespace Example { public class Outer { [StrongType(BaseType.Integer)] public partial struct Id { } } }", "ST0006")]
