@@ -29,6 +29,12 @@ internal static class NullableFlowChecks
     internal static bool StringIsNotNull(StringId? value) => value != null && null != value;
     internal static bool EmailIsNull(EmailId? value) => value == null || null == value;
     internal static bool EmailIsNotNull(EmailId? value) => value != null && null != value;
+    internal static bool GuidIsNull(GuidClassId? value) => value == null || null == value;
+    internal static bool GuidIsNotNull(GuidClassId? value) => value != null && null != value;
+    internal static bool IntegerIsNull(IntegerClassId? value) => value == null || null == value;
+    internal static bool IntegerIsNotNull(IntegerClassId? value) => value != null && null != value;
+    internal static bool UriIsNull(UriId? value) => value == null || null == value;
+    internal static bool UriIsNotNull(UriId? value) => value != null && null != value;
 
     internal static int ParseGuid(string? value)
     {

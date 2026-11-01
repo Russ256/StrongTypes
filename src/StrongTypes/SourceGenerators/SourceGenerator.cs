@@ -24,7 +24,7 @@ internal static class SourceGenerator
         if (typeToGenerate.IsClass)
         {
             return $$"""
-                public static bool operator == ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b)
+                public static bool operator == ({{typeToGenerate.NullableName}} a, {{typeToGenerate.NullableName}} b)
                 {
                     if (a is null && b is null)
                     {
@@ -39,7 +39,7 @@ internal static class SourceGenerator
                     return a._value == b._value;
                 }
 
-                public static bool operator != ({{typeToGenerate.Name}} a, {{typeToGenerate.Name}} b)
+                public static bool operator != ({{typeToGenerate.NullableName}} a, {{typeToGenerate.NullableName}} b)
                 {
                     if (a is null && b is null)
                     {

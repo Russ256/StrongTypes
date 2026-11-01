@@ -6,6 +6,26 @@ using FluentAssertions;
 public class NullabilityTests
 {
     [TestMethod]
+    [DataRow(false, false, true)]
+    [DataRow(false, true, false)]
+    [DataRow(true, false, false)]
+    [DataRow(true, true, true)]
+    public void Guid_Class_Equality_Should_Accept_Nullable_Operands(bool hasLeft, bool hasRight, bool expected)
+    {
+        // Arrange
+        TestGuidClass? left = hasLeft ? new(Guid.Empty) : null;
+        TestGuidClass? right = hasRight ? new(Guid.Empty) : null;
+
+        // Assert
+        (left == right).Should().Be(expected);
+        (left != right).Should().Be(!expected);
+        (left == null).Should().Be(!hasLeft);
+        (null == left).Should().Be(!hasLeft);
+        (left != null).Should().Be(hasLeft);
+        (null != left).Should().Be(hasLeft);
+    }
+
+    [TestMethod]
     public void Reference_Types_Should_Compare_Greater_Than_Null()
     {
         // Arrange
