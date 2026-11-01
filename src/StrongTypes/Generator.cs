@@ -97,6 +97,22 @@ public class Generator : IIncrementalGenerator
                 continue;
             }
 
+            if (symbol.IsStatic)
+            {
+                ReportDiagnostic(context, "ST0011", "Static strong types are not supported; remove the static modifier", location);
+                continue;
+            }
+            if (symbol.IsAbstract)
+            {
+                ReportDiagnostic(context, "ST0012", "Abstract strong types are not supported; remove the abstract modifier", location);
+                continue;
+            }
+            if (symbol.IsRefLikeType)
+            {
+                ReportDiagnostic(context, "ST0013", "Ref struct strong types are not supported; remove the ref modifier", location);
+                continue;
+            }
+
             if (symbol.DeclaringSyntaxReferences.Any(reference =>
                 reference.GetSyntax(ct) is TypeDeclarationSyntax type && type.ParameterList != null))
             {

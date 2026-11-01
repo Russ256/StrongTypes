@@ -30,6 +30,10 @@ classes (`ST0002`). File-local types are rejected with `ST0009`; remove the
 Primary constructors, including positional record declarations and empty
 parameter lists, are rejected with `ST0010`. Remove the primary-constructor
 parameter list and use the generated value constructors instead.
+Static classes (`ST0011`), abstract classes or records (`ST0012`), and ref structs
+(`ST0013`) are unsupported. Use a concrete instance class, ordinary struct, or
+supported record type instead. These checks include modifiers on other partial
+declarations of the same type.
 
 String and email equality operators compare instances of the same generated type
 and support null literals on either side. Comparisons with raw strings use the

@@ -65,6 +65,12 @@ public class DeclarationDiagnosticTests
     [DataRow("namespace Example { [StrongType(BaseType.String)] public partial class Id(string value) { } }", "ST0010")]
     [DataRow("namespace Example { [StrongType(BaseType.EmailAddress)] public partial class Id(string value) { } }", "ST0010")]
     [DataRow("namespace Example { [StrongType(BaseType.Uri)] public partial class Id(System.Uri value) { } }", "ST0010")]
+    [DataRow("namespace Example { [StrongType(BaseType.String)] public static partial class Id { } }", "ST0011")]
+    [DataRow("namespace Example { [StrongType(BaseType.Integer)] public abstract partial class Id { } }", "ST0012")]
+    [DataRow("namespace Example { [StrongType(BaseType.Guid)] public abstract partial class Id { } }", "ST0012")]
+    [DataRow("namespace Example { [StrongType(BaseType.Integer)] public abstract partial record Id; }", "ST0012")]
+    [DataRow("namespace Example { [StrongType(BaseType.Integer)] public ref partial struct Id { } }", "ST0013")]
+    [DataRow("namespace Example { [StrongType(BaseType.Guid)] public readonly ref partial struct Id { } }", "ST0013")]
     public void Unsupported_Declaration_Should_Report_Diagnostic_Without_Emitting_Type(string declaration, string diagnosticId)
     {
         // Arrange
@@ -140,6 +146,40 @@ public class DeclarationDiagnosticTests
         result.Exception.Should().BeNull();
         Diagnostic diagnostic = result.Diagnostics.Should().ContainSingle().Subject;
         diagnostic.Id.Should().Be("ST0010");
+        diagnostic.Severity.Should().Be(DiagnosticSeverity.Error);
+        diagnostic.Location.SourceTree.Should().BeSameAs(annotatedSource);
+        result.GeneratedSources.Select(generated => generated.HintName).Should().BeEquivalentTo(
+            "StrongTypes.Attributes.g.cs", "StrongTypes.Exceptions.g.cs", "Example.ValidId.g.cs");
+    }
+
+    [TestMethod]
+    [DataRow("class", "static", "ST0011")]
+    [DataRow("class", "abstract", "ST0012")]
+    [DataRow("struct", "ref", "ST0013")]
+    public void Unsupported_Modifier_On_Another_Partial_Declaration_Should_Not_Block_Valid_Types(
+        string kind, string modifier, string diagnosticId)
+    {
+        // Arrange
+        SyntaxTree annotatedSource = CSharpSyntaxTree.ParseText($$"""
+            using StrongTypes;
+            namespace Example;
+            [StrongType(BaseType.Integer)] public partial {{kind}} Id { }
+            [StrongType(BaseType.Integer)] public partial struct ValidId { }
+            """, path: "Annotated.cs");
+        SyntaxTree modifierSource = CSharpSyntaxTree.ParseText(
+            $"namespace Example; public {modifier} partial {kind} Id {{ }}", path: "Modifier.cs");
+        CSharpCompilation compilation = CSharpCompilation.Create("PartialModifierProbe", [annotatedSource, modifierSource],
+            [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)],
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new Generator().AsSourceGenerator());
+
+        // Act
+        GeneratorRunResult result = driver.RunGenerators(compilation).GetRunResult().Results.Single();
+
+        // Assert
+        result.Exception.Should().BeNull();
+        Diagnostic diagnostic = result.Diagnostics.Should().ContainSingle().Subject;
+        diagnostic.Id.Should().Be(diagnosticId);
         diagnostic.Severity.Should().Be(DiagnosticSeverity.Error);
         diagnostic.Location.SourceTree.Should().BeSameAs(annotatedSource);
         result.GeneratedSources.Select(generated => generated.HintName).Should().BeEquivalentTo(
