@@ -55,7 +55,7 @@ internal static class GuidGenerator
                     }
 
                     public static {{typeToGenerate.Name}} New() => new {{typeToGenerate.Name}}(global::System.Guid.NewGuid());
-                    public static readonly {{typeToGenerate.Name}} Empty = new {{typeToGenerate.Name}}();
+                    public static readonly {{typeToGenerate.Name}} Empty = new {{typeToGenerate.Name}}(global::System.Guid.Empty);
 
                     public override string ToString() => _value.ToString();
 

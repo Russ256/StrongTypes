@@ -14,9 +14,34 @@ public readonly partial record struct TestGuidRecord
 {
 }
 
+[StrongType(BaseType.Guid)]
+public partial class TestGuidClass
+{
+}
+
 [TestClass]
 public class GuidTests
 {
+    [TestMethod]
+    public void Class_Empty_Should_Contain_Empty_Guid_Without_Parameterless_Constructor()
+    {
+        // Act
+        TestGuidClass sut = TestGuidClass.Empty;
+
+        // Assert
+        sut.Should().NotBeNull();
+        sut.Value.Should().Be(Guid.Empty);
+        typeof(TestGuidClass).GetConstructor(Type.EmptyTypes).Should().BeNull();
+    }
+
+    [TestMethod]
+    public void Struct_And_Record_Empty_Should_Contain_Empty_Guid()
+    {
+        // Assert
+        TestGuidStruct.Empty.Value.Should().Be(Guid.Empty);
+        TestGuidRecord.Empty.Value.Should().Be(Guid.Empty);
+    }
+
     [TestMethod]
     public void CompareTo_When_LessThan_Returns_Negative()
     {
