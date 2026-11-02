@@ -7,6 +7,23 @@ using System.Text.Json;
 public class MemberNameTests
 {
     [TestMethod]
+    public void Email_Validation_Should_Not_Assign_To_User_Underscore_Member()
+    {
+        // Arrange
+        string address = "user@example.com";
+        Action invalid = () => _ = new global::StrongTypes.CompilationTests.EmailWithUnderscoreMember("invalid");
+
+        // Act
+        global::StrongTypes.CompilationTests.EmailWithUnderscoreMember sut = new(address);
+
+        // Assert
+        sut.UserValue.Should().Be(7);
+        sut.Value.Should().Be(address);
+        VerifyRoundTrip(sut, "\"user@example.com\"");
+        invalid.Should().ThrowExactly<FormatException>();
+    }
+
+    [TestMethod]
     public void JsonConverter_Type_Name_Should_Support_All_Base_Types_And_Json_RoundTrips()
     {
         // Arrange / Act / Assert

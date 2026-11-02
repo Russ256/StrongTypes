@@ -97,7 +97,7 @@ internal static class StringGenerator
 
                         try
                         {
-                            _ = new global::System.Net.Mail.MailAddress(value);
+                            new global::System.Net.Mail.MailAddress(value);
                         }
                         catch (global::System.FormatException exception)
                         {
