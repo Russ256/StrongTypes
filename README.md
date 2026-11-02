@@ -2,6 +2,57 @@
 
 A C# source generator for strongly typed GUIDs, integers, strings, email addresses, and URIs.
 
+## Entity Framework Core
+
+The optional `StrongTypes.EntityFrameworkCore` package supports EF Core 10 on
+.NET 10. Reference it from your persistence project alongside your EF Core
+database provider. Continue referencing the `StrongTypes` generator from the
+project declaring your strong types, and rebuild that project with this version
+of the generator so it emits the runtime discovery metadata.
+
+Register the assemblies containing your strong types once in your context:
+
+```csharp
+using Microsoft.EntityFrameworkCore;
+using StrongTypes.EntityFrameworkCore;
+
+namespace Example;
+
+[StrongTypes.StrongType(StrongTypes.BaseType.Guid)]
+public readonly partial struct CustomerId { }
+
+public class AppDbContext : DbContext
+{
+    protected override void ConfigureConventions(
+        ModelConfigurationBuilder configurationBuilder)
+    {
+        base.ConfigureConventions(configurationBuilder);
+        configurationBuilder.AddStrongTypes(typeof(CustomerId).Assembly);
+    }
+}
+```
+
+Pass additional assemblies to the same call when types live in multiple projects.
+All generated types in those assemblies, including internal types, are registered
+before EF discovers properties. No per-type converter classes or per-property
+registration are required. GUID and integer wrappers use their underlying CLR
+types; string and email wrappers use strings. URI wrappers use strings and
+preserve `Uri.OriginalString`, including relative URIs.
+
+Nullable properties retain database nulls. Reading non-null values uses the
+generated constructor, enforcing the same validation as application code.
+Queries comparing a property to a strong-type value use the converter; accessing
+members such as `.Value` inside a database query is subject to EF Core's value
+conversion translation limitations. Only the wrapped value is persisted; any
+additional user-defined state on a strong type is not stored by this integration.
+Explicit property configuration in `OnModelCreating` can override the converter.
+
+The integration discovers retained metadata emitted by the generator; it does
+not depend on retaining `StrongTypeAttribute`, and the core generator has no EF
+Core dependency. Assembly scanning and runtime converter construction require
+reflection and dynamic code; this registration API is not intended for trimmed
+or Native AOT applications.
+
 ## Development
 
 Install the .NET 10 SDK. `global.json` selects an installed stable .NET 10 SDK.

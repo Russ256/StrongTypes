@@ -4,8 +4,10 @@
     <File Path="../AGENTS.md" />
     <File Path="../global.json" />
     <File Path="../README.md" />
+    <File Path="Directory.Build.props" />
   </Folder>
   <Project Path="StrongTypes.Tests/StrongTypes.Tests.csproj" />
   <Project Path="StrongTypes.CompilationTests/StrongTypes.CompilationTests.csproj" />
   <Project Path="StrongTypes/StrongTypes.csproj" />
+  <Project Path="StrongTypes.EntityFrameworkCore/StrongTypes.EntityFrameworkCore.csproj" />
 </Solution>

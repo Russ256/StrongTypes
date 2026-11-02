@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup>
+    <Version>2.0.0-rc2</Version>
+    <Nullable>enable</Nullable>
+    <Product>StrongTypes</Product>
+    <Authors>Russell Wilkins</Authors>
+    <Copyright>Russell Wilkins</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/Russ256/StrongTypes</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Russ256/StrongTypes</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

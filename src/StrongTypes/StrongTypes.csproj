@@ -8,13 +8,6 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <Title>C# Strong Type Generator</Title>
-    <Authors>Russell Wilkins</Authors>
-    <Copyright>Russell Wilkins</Copyright>
-    <RepositoryUrl>https://github.com/Russ256/StrongTypes</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/Russ256/StrongTypes</PackageProjectUrl>
-    <Version>2.0.0-preview6</Version>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
 
@@ -24,7 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="../../README.md" Pack="true" PackagePath="/" />
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 

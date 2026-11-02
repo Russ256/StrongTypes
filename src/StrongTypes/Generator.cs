@@ -26,7 +26,7 @@ public class Generator : IIncrementalGenerator
 
         IncrementalValuesProvider<TypeToGenerate> types = analyses
             .Where(static analysis => analysis.Type.HasValue)
-            .Select(static (analysis, _) => analysis.Type.Value)
+            .Select(static (analysis, _) => analysis.Type.GetValueOrDefault())
             .WithTrackingName("StrongTypeModels");
 
         IncrementalValuesProvider<(string HintName, string Source)> sources = types
@@ -34,9 +34,13 @@ public class Generator : IIncrementalGenerator
             .WithTrackingName("StrongTypeSources");
         context.RegisterSourceOutput(sources, static (spc, source) =>
             spc.AddSource(source.HintName, source.Source));
-        context.RegisterSourceOutput(
-            analyses.Where(static analysis => analysis.Diagnostic != null),
-            static (spc, analysis) => spc.ReportDiagnostic(analysis.Diagnostic));
+        context.RegisterSourceOutput(analyses, static (spc, analysis) =>
+        {
+            if (analysis.Diagnostic is Diagnostic diagnostic)
+            {
+                spc.ReportDiagnostic(diagnostic);
+            }
+        });
     }
 
     private static TypeAnalysis AnalyzeType(GeneratorAttributeSyntaxContext context, System.Threading.CancellationToken ct)
@@ -102,9 +106,10 @@ public class Generator : IIncrementalGenerator
                 "Required members are not supported for strong types, including inherited members; remove the required modifier or use a separate model", location));
         }
 
-        object baseType = attribute.ConstructorArguments[0].Value;
+        object? baseType = attribute.ConstructorArguments[0].Value;
         int? maxLength = attribute.ConstructorArguments.Length > 1
-            ? (int)attribute.ConstructorArguments[1].Value : null;
+            && attribute.ConstructorArguments[1].Value is int length
+            ? length : null;
         if (maxLength.HasValue)
         {
             if (baseType is not (3 or 4))
@@ -178,7 +183,7 @@ public class Generator : IIncrementalGenerator
 
     private static bool HasRequiredMembers(INamedTypeSymbol symbol, System.Threading.CancellationToken ct)
     {
-        for (INamedTypeSymbol type = symbol; type != null; type = type.BaseType)
+        for (INamedTypeSymbol? type = symbol; type != null; type = type.BaseType)
         {
             ct.ThrowIfCancellationRequested();
             if (type.GetMembers().Any(member => member is IPropertySymbol { IsRequired: true }
@@ -221,7 +226,7 @@ public class Generator : IIncrementalGenerator
         // Metadata names preserve generic arity; '+' distinguishes containing types
         // from namespaces without introducing filesystem path separators.
         Stack<string> typeNames = new();
-        for (INamedTypeSymbol type = symbol; type != null; type = type.ContainingType)
+        for (INamedTypeSymbol? type = symbol; type != null; type = type.ContainingType)
         {
             typeNames.Push(type.MetadataName);
         }
