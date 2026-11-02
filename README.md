@@ -27,6 +27,14 @@ and generic (`ST0007`) declarations. String and email types must be ordinary
 classes; structs and records receive `ST0008`. URI types also require ordinary
 classes (`ST0002`). File-local types are rejected with `ST0009`; remove the
 `file` modifier to allow generation in a separate source file.
+GUID and integer classes and structs implement `IEquatable<T>` and
+`IComparable<T>` using the wrapped value. Reference types compare greater than
+`null`. Records retain compiler-generated equality, including additional state
+and record inheritance, and no longer receive generated `IComparable<T>` or
+`CompareTo` members. Use an explicit comparer for sorting records or using them
+in sorted collections; a value-only comparer intentionally groups records with
+the same wrapped value even when their other state differs.
+
 Primary constructors, including positional record declarations and empty
 parameter lists, are rejected with `ST0010`. Remove the primary-constructor
 parameter list and use the generated value constructors instead.
