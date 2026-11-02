@@ -61,6 +61,13 @@ public partial class StringId { }
 [global::StrongTypes.StrongType(global::StrongTypes.BaseType.EmailAddress)]
 public partial class EmailId { }
 
+[global::StrongTypes.StrongType(global::StrongTypes.BaseType.EmailAddress)]
+public partial class EmailWithUnderscoreMember
+{
+    private readonly int _ = 7;
+    public int UserValue => _;
+}
+
 [global::StrongTypes.StrongType(global::StrongTypes.BaseType.Uri)]
 public partial class UriId { }
 

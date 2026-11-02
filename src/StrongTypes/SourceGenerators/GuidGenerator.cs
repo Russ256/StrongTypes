@@ -68,7 +68,7 @@ internal static class GuidGenerator
                     public class {{typeToGenerate.ConverterName}} : global::System.Text.Json.Serialization.JsonConverter<{{typeToGenerate.Name}}>
                     {
                         public override {{typeToGenerate.Name}} Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options)
-                            => new {{typeToGenerate.Name}}(reader.GetString()!);
+                            {{SourceGenerator.GenerateJsonStringRead(typeToGenerate)}}
 
                         public override void Write(global::System.Text.Json.Utf8JsonWriter writer, {{typeToGenerate.Name}} value, global::System.Text.Json.JsonSerializerOptions options)
                             => writer.WriteStringValue(value.{{typeToGenerate.ValueFieldName}});

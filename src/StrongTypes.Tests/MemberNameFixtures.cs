@@ -1,11 +1,17 @@
 namespace StrongTypes.Tests.MemberNames.Integer
 {
     [StrongType(BaseType.Integer)]
+    public partial record CompareTo { }
+
+    [StrongType(BaseType.Integer)]
     public readonly partial struct JsonConverter { }
 }
 
 namespace StrongTypes.Tests.MemberNames.Guid
 {
+    [StrongType(BaseType.Guid)]
+    public readonly partial record struct CompareTo { }
+
     [StrongType(BaseType.Guid)]
     public readonly partial struct JsonConverter { }
 }
@@ -34,8 +40,11 @@ namespace StrongTypes.Tests.MemberNames.Uri
 
 namespace StrongTypes.Tests.MemberNames
 {
+    // Intentionally matches the generated backing field to test collision handling.
+#pragma warning disable IDE1006 // Naming Styles
     [StrongType(BaseType.Integer)]
     public readonly partial struct _value { }
+#pragma warning restore IDE1006 // Naming Styles
 
     [StrongType(BaseType.Integer)]
     public partial class ExistingHelpers

@@ -27,6 +27,14 @@ and generic (`ST0007`) declarations. String and email types must be ordinary
 classes; structs and records receive `ST0008`. URI types also require ordinary
 classes (`ST0002`). File-local types are rejected with `ST0009`; remove the
 `file` modifier to allow generation in a separate source file.
+GUID and integer classes and structs implement `IEquatable<T>` and
+`IComparable<T>` using the wrapped value. Reference types compare greater than
+`null`. Records retain compiler-generated equality, including additional state
+and record inheritance, and no longer receive generated `IComparable<T>` or
+`CompareTo` members. Use an explicit comparer for sorting records or using them
+in sorted collections; a value-only comparer intentionally groups records with
+the same wrapped value even when their other state differs.
+
 Primary constructors, including positional record declarations and empty
 parameter lists, are rejected with `ST0010`. Remove the primary-constructor
 parameter list and use the generated value constructors instead.
@@ -34,6 +42,10 @@ Static classes (`ST0011`), abstract classes or records (`ST0012`), and ref struc
 (`ST0013`) are unsupported. Use a concrete instance class, ordinary struct, or
 supported record type instead. These checks include modifiers on other partial
 declarations of the same type.
+Required properties and fields are rejected with `ST0017`, including members on
+other partial declarations or inherited from base types. Generated parsing and
+JSON conversion cannot initialize this additional state. Remove `required` or
+put the additional state in a separate model.
 Type names that conflict with generated public members (for example, `Value`,
 or `Parse` for integer/GUID types) are rejected with `ST0014`. Rename the type
 to resolve the conflict. Generated backing fields and JSON converter helpers
@@ -46,10 +58,23 @@ Compare `.Value` directly when checking unvalidated text without creating a wrap
 
 ## Validation exceptions
 
+String limits are optional: `[StrongType(BaseType.String)]` has no length limit,
+while `[StrongType(BaseType.String, 0)]` permits only the empty string.
+Email types default to a limit of 254; an explicit limit from 0 through 254 is
+honored in addition to email validation. A zero email limit permits no valid values.
+Negative limits produce `ST0004`, email limits above 254 produce `ST0016`, and
+supplying a limit for integer, GUID, or URI types produces `ST0015`.
+Lengths count UTF-16 code units (`string.Length`), so many emoji count as two.
+Constructor calls, implicit conversions, and JSON deserialization enforce the same limits.
+
 Length violations throw `System.ArgumentException` with `ParamName` set to
 `value` and the actual length, maximum length, and type name in the message.
 Invalid emails throw `System.FormatException`; null constructor arguments still
 throw `System.ArgumentNullException`.
+
+During JSON deserialization, string/email, GUID, and URI constructor validation
+failures are wrapped in `System.Text.Json.JsonException`, with the original
+exception preserved as `InnerException` and the JSON path supplied by the serializer.
 
 These standard exceptions replace the generated `MaxLengthException` and
 `EmailAddressFormatException`. Update existing catch clauses accordingly.

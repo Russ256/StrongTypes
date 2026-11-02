@@ -24,7 +24,7 @@ internal static class UriGenerator
                     {
                         global::System.ArgumentNullException.ThrowIfNull(value, nameof(value));
 
-                        {{typeToGenerate.ValueFieldName}} = new global::System.Uri(value);
+                        {{typeToGenerate.ValueFieldName}} = new global::System.Uri(value, global::System.UriKind.RelativeOrAbsolute);
                     }
 
                     public override string ToString() => {{typeToGenerate.ValueFieldName}}.ToString();
@@ -36,7 +36,7 @@ internal static class UriGenerator
                     public class {{typeToGenerate.ConverterName}} : global::System.Text.Json.Serialization.JsonConverter<{{typeToGenerate.Name}}>
                     {
                         public override {{typeToGenerate.Name}} Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options)
-                            => new {{typeToGenerate.Name}}(reader.GetString()!);
+                            {{SourceGenerator.GenerateJsonStringRead(typeToGenerate)}}
 
                         public override void Write(global::System.Text.Json.Utf8JsonWriter writer, {{typeToGenerate.Name}} value, global::System.Text.Json.JsonSerializerOptions options)
                             => writer.WriteStringValue(value.{{typeToGenerate.ValueFieldName}}.ToString());

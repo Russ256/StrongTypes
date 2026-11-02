@@ -72,10 +72,13 @@ internal static class SourceGenerator
         }
 
         return $$"""
+                 public bool Equals({{typeToGenerate.NullableName}} other)
+                     => {{(typeToGenerate.IsReferenceType ? "other is not null && " : string.Empty)}}{{typeToGenerate.ValueFieldName}} == other.{{typeToGenerate.ValueFieldName}};
+
                  public override bool Equals([global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] object? o)
                  {
                      if (o is {{typeToGenerate.Name}} other)
-                         return {{typeToGenerate.ValueFieldName}} == other.{{typeToGenerate.ValueFieldName}};
+                         return Equals(other);
 
                      return false;
                  }
@@ -84,6 +87,13 @@ internal static class SourceGenerator
 
     internal static string GenerateCompareTo(TypeToGenerate typeToGenerate)
     {
+        if (typeToGenerate.IsRecord)
+        {
+            // Record equality includes user state and runtime type. There is no
+            // general ordering for that state; consumers must supply a comparer.
+            return string.Empty;
+        }
+
         return typeToGenerate.IsReferenceType
             ? $"public int CompareTo({typeToGenerate.NullableName} other) => other is null ? 1 : {typeToGenerate.ValueFieldName}.CompareTo(other.{typeToGenerate.ValueFieldName});"
             : $"public int CompareTo({typeToGenerate.Name} other) => {typeToGenerate.ValueFieldName}.CompareTo(other.{typeToGenerate.ValueFieldName});";
@@ -111,8 +121,27 @@ internal static class SourceGenerator
                 """;
     }
 
+    internal static string GenerateJsonStringRead(TypeToGenerate typeToGenerate)
+    {
+        return $$"""
+                {
+                    try
+                    {
+                        return new {{typeToGenerate.Name}}(reader.GetString()!);
+                    }
+                    catch (global::System.Exception exception) when (exception is global::System.ArgumentException or global::System.FormatException)
+                    {
+                        throw new global::System.Text.Json.JsonException("Invalid value for {{typeToGenerate.Name}}.", exception);
+                    }
+                }
+                """;
+    }
+
     internal static string GenerateType(TypeToGenerate typeToGenerate)
     {
-        return $"{typeToGenerate.Modifiers}{(typeToGenerate.IsRecord ? " record " : " ")}{typeToGenerate.ClassOrStruct} {typeToGenerate.Name} : global::System.IComparable<{typeToGenerate.Name}>, global::System.IParsable<{typeToGenerate.Name}>";
+        string interfaces = typeToGenerate.IsRecord
+            ? string.Empty
+            : $"global::System.IEquatable<{typeToGenerate.Name}>, global::System.IComparable<{typeToGenerate.Name}>, ";
+        return $"{typeToGenerate.Modifiers}{(typeToGenerate.IsRecord ? " record " : " ")}{typeToGenerate.ClassOrStruct} {typeToGenerate.Name} : {interfaces}global::System.IParsable<{typeToGenerate.Name}>";
     }
 }

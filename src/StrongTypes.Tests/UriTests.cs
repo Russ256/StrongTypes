@@ -44,6 +44,39 @@ public class UriTests
     }
 
     [TestMethod]
+    public void Constructor_With_Relative_String_Should_Succeed()
+    {
+        // Arrange
+        string uriString = "orders/42";
+
+        // Act
+        TestUriClass sut = new(uriString);
+
+        // Assert
+        sut.Value.IsAbsoluteUri.Should().BeFalse();
+        sut.Value.OriginalString.Should().Be(uriString);
+    }
+
+    [TestMethod]
+    [DataRow("orders/42")]
+    [DataRow("../orders/42?view=summary#details")]
+    public void Json_RoundTrip_With_Relative_Uri_Should_Preserve_Value(string uriString)
+    {
+        // Arrange
+        TestUriClass sut = new(new Uri(uriString, UriKind.Relative));
+
+        // Act
+        string json = JsonSerializer.Serialize(sut);
+        TestUriClass? result = JsonSerializer.Deserialize<TestUriClass>(json);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Value.IsAbsoluteUri.Should().BeFalse();
+        result.Value.OriginalString.Should().Be(uriString);
+        result.Should().Be(sut);
+    }
+
+    [TestMethod]
     public void Equals_Null_Should_Be_False()
     {
         // Arrange

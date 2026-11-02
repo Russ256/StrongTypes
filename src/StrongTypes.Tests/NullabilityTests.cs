@@ -30,13 +30,11 @@ public class NullabilityTests
     {
         // Arrange
         TestGuidClass guidClass = new(Guid.Empty);
-        IntegerRecord integerRecord = new(0);
-        SealedGuidRecord guidRecord = new(Guid.Empty);
+        StrongTypes.CompilationTests.IntegerClassId integerClass = new(0);
 
         // Assert
         guidClass.CompareTo(null).Should().BePositive();
-        integerRecord.CompareTo(null).Should().BePositive();
-        guidRecord.CompareTo(null).Should().BePositive();
+        integerClass.CompareTo(null).Should().BePositive();
     }
 
     [TestMethod]
