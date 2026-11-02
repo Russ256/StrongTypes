@@ -59,6 +59,10 @@ Length violations throw `System.ArgumentException` with `ParamName` set to
 Invalid emails throw `System.FormatException`; null constructor arguments still
 throw `System.ArgumentNullException`.
 
+During JSON deserialization, string/email, GUID, and URI constructor validation
+failures are wrapped in `System.Text.Json.JsonException`, with the original
+exception preserved as `InnerException` and the JSON path supplied by the serializer.
+
 These standard exceptions replace the generated `MaxLengthException` and
 `EmailAddressFormatException`. Update existing catch clauses accordingly.
 No public exception types are injected into consuming assemblies, so callers

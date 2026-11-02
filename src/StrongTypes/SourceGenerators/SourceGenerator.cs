@@ -121,6 +121,22 @@ internal static class SourceGenerator
                 """;
     }
 
+    internal static string GenerateJsonStringRead(TypeToGenerate typeToGenerate)
+    {
+        return $$"""
+                {
+                    try
+                    {
+                        return new {{typeToGenerate.Name}}(reader.GetString()!);
+                    }
+                    catch (global::System.Exception exception) when (exception is global::System.ArgumentException or global::System.FormatException)
+                    {
+                        throw new global::System.Text.Json.JsonException("Invalid value for {{typeToGenerate.Name}}.", exception);
+                    }
+                }
+                """;
+    }
+
     internal static string GenerateType(TypeToGenerate typeToGenerate)
     {
         string interfaces = typeToGenerate.IsRecord
