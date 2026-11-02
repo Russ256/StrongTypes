@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using StrongTypes.SourceGenerators;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,9 +11,6 @@ using System.Text;
 [Generator(LanguageNames.CSharp)]
 public class Generator : IIncrementalGenerator
 {
-    internal const string _namespace = "StrongTypes";
-    internal const string _attributeName = "StrongType";
-
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Add our attribute to the project
@@ -240,19 +236,5 @@ public class Generator : IIncrementalGenerator
         return Diagnostic.Create(
             new DiagnosticDescriptor(id, "Not Supported", message, "Strong Types", DiagnosticSeverity.Error, true),
             location);
-    }
-    public static AttributeArgumentSyntax GetArgumentByName(AttributeArgumentListSyntax argumentList, string name)
-    {
-        if (argumentList == null) return null;
-
-        foreach (AttributeArgumentSyntax arg in argumentList.Arguments)
-        {
-            if (arg.NameEquals != null &&
-                string.Equals(arg.NameEquals.Name.Identifier.ValueText, name, StringComparison.OrdinalIgnoreCase))
-            {
-                return arg;
-            }
-        }
-        return null;
     }
 }
