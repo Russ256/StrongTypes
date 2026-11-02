@@ -42,6 +42,10 @@ Static classes (`ST0011`), abstract classes or records (`ST0012`), and ref struc
 (`ST0013`) are unsupported. Use a concrete instance class, ordinary struct, or
 supported record type instead. These checks include modifiers on other partial
 declarations of the same type.
+Required properties and fields are rejected with `ST0017`, including members on
+other partial declarations or inherited from base types. Generated parsing and
+JSON conversion cannot initialize this additional state. Remove `required` or
+put the additional state in a separate model.
 Type names that conflict with generated public members (for example, `Value`,
 or `Parse` for integer/GUID types) are rejected with `ST0014`. Rename the type
 to resolve the conflict. Generated backing fields and JSON converter helpers

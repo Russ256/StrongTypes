@@ -14,6 +14,8 @@ public class IncrementalGenerationTests
     [DataRow("limit")]
     [DataRow("partial")]
     [DataRow("diagnostic")]
+    [DataRow("required-partial")]
+    [DataRow("required-base")]
     public void Edits_Should_Reuse_Unchanged_Sources_And_Update_Affected_Type(string edit)
     {
         // Arrange
@@ -47,6 +49,10 @@ public class IncrementalGenerationTests
                 "namespace Example; public partial class Name { private int _value; }", path: "Other.cs")),
             "diagnostic" => compilation.ReplaceSyntaxTree(other, CSharpSyntaxTree.ParseText(
                 "namespace Example; public abstract partial class Name { }", path: "Other.cs")),
+            "required-partial" => compilation.ReplaceSyntaxTree(other, CSharpSyntaxTree.ParseText(
+                "namespace Example; public partial class Name { public required string Label { get; init; } }", path: "Other.cs")),
+            "required-base" => compilation.ReplaceSyntaxTree(other, CSharpSyntaxTree.ParseText(
+                "namespace Example; public class Base { public required string Label; } public partial class Name : Base { }", path: "Other.cs")),
             _ => compilation.ReplaceSyntaxTree(other, CSharpSyntaxTree.ParseText(
                 "namespace Example; public partial class Name { } public class Other { public int X => 1; }", path: "Other.cs")),
         };
@@ -65,10 +71,21 @@ public class IncrementalGenerationTests
         outputs.Single(output => output.HintName == "Example.Id.g.cs").Reason.Should().Be(IncrementalStepRunReason.Cached);
         result.GeneratedSources.Single(source => source.HintName == "Example.Id.g.cs")
             .SourceText.ToString().Should().Be(originalId);
-        if (edit == "diagnostic")
+        if (edit is "diagnostic" or "required-partial" or "required-base")
         {
-            result.Diagnostics.Should().ContainSingle().Which.Id.Should().Be("ST0012");
+            Diagnostic diagnostic = result.Diagnostics.Should().ContainSingle().Subject;
+            diagnostic.Id.Should().Be(edit == "diagnostic" ? "ST0012" : "ST0017");
+            diagnostic.Severity.Should().Be(DiagnosticSeverity.Error);
+            diagnostic.Location.SourceTree.Should().BeSameAs(annotated);
             result.GeneratedSources.Should().NotContain(source => source.HintName == "Example.Name.g.cs");
+
+            // Removing the unsupported member or modifier must restore generation.
+            compilation = compilation.ReplaceSyntaxTree(
+                compilation.SyntaxTrees.Single(tree => tree.FilePath == "Other.cs"), other);
+            GeneratorRunResult restored = driver.RunGenerators(compilation).GetRunResult().Results.Single();
+            restored.Exception.Should().BeNull();
+            restored.Diagnostics.Should().BeEmpty();
+            restored.GeneratedSources.Should().Contain(source => source.HintName == "Example.Name.g.cs");
         }
         else
         {

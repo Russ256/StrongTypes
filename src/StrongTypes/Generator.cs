@@ -100,6 +100,12 @@ public class Generator : IIncrementalGenerator
             return new TypeAnalysis(null, CreateDiagnostic("ST0007", "Generic strong types are not supported", location));
         }
 
+        if (HasRequiredMembers(symbol, ct))
+        {
+            return new TypeAnalysis(null, CreateDiagnostic("ST0017",
+                "Required members are not supported for strong types, including inherited members; remove the required modifier or use a separate model", location));
+        }
+
         object baseType = attribute.ConstructorArguments[0].Value;
         int? maxLength = attribute.ConstructorArguments.Length > 1
             ? (int)attribute.ConstructorArguments[1].Value : null;
@@ -172,6 +178,21 @@ public class Generator : IIncrementalGenerator
         }
 
         return new TypeAnalysis(typeToGenerate, null);
+    }
+
+    private static bool HasRequiredMembers(INamedTypeSymbol symbol, System.Threading.CancellationToken ct)
+    {
+        for (INamedTypeSymbol type = symbol; type != null; type = type.BaseType)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (type.GetMembers().Any(member => member is IPropertySymbol { IsRequired: true }
+                or IFieldSymbol { IsRequired: true }))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool ConflictsWithPublicMemberName(string name, TypeToGenerate type)
