@@ -5,7 +5,7 @@
 `src/StrongTypes.sln` contains two C# projects:
 
 - `src/StrongTypes/`: a Roslyn incremental source generator targeting `netstandard2.0`. `Generator.cs` discovers annotated types; `Attributes.cs` and `Exceptions.cs` supply generated support code. `SourceGenerators/` contains shared generation logic and implementations for GUID, integer, string/email, and URI types.
-- `src/StrongTypes.Tests/`: a `net9.0` test executable with behavior tests grouped by base type, such as `GuidTests.cs` and `EmailTests.cs`. It references the generator as an analyzer so test fixture types exercise generated code.
+- `src/StrongTypes.Tests/`: a `net10.0` test executable with behavior tests grouped by base type, such as `GuidTests.cs` and `EmailTests.cs`. It references the generator as an analyzer so test fixture types exercise generated code.
 
 ## Build, Test, and Development Commands
 

@@ -24,7 +24,7 @@ internal static class UriGenerator
                     {
                         global::System.ArgumentNullException.ThrowIfNull(value, nameof(value));
 
-                        {{typeToGenerate.ValueFieldName}} = new global::System.Uri(value);
+                        {{typeToGenerate.ValueFieldName}} = new global::System.Uri(value, global::System.UriKind.RelativeOrAbsolute);
                     }
 
                     public override string ToString() => {{typeToGenerate.ValueFieldName}}.ToString();
