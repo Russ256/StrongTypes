@@ -51,6 +51,20 @@ public class MemberNameTests
         sut.Value.Should().Be("text");
     }
 
+    [TestMethod]
+    public void Records_Named_CompareTo_Should_Support_Generated_Behavior()
+    {
+        // Arrange
+        MemberNames.Integer.CompareTo integer = new(42);
+        MemberNames.Guid.CompareTo guid = new(Guid.Empty);
+
+        // Act / Assert
+        MemberNames.Integer.CompareTo.Parse("42").Should().Be(integer);
+        MemberNames.Guid.CompareTo.Parse(Guid.Empty.ToString()).Should().Be(guid);
+        VerifyRoundTrip(integer, "42");
+        VerifyRoundTrip(guid, $"\"{Guid.Empty}\"");
+    }
+
     private static void VerifyRoundTrip<T>(T value, string json)
     {
         JsonSerializer.Serialize(value).Should().Be(json);

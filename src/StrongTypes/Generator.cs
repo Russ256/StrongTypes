@@ -204,7 +204,7 @@ public class Generator : IIncrementalGenerator
             return true;
         }
         if (type.BaseTypeName is "int" or "global::System.Guid"
-            && name is "Parse" or "TryParse" or "CompareTo")
+            && (name is "Parse" or "TryParse" || (name == "CompareTo" && !type.IsRecord)))
         {
             return true;
         }

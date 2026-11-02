@@ -1,11 +1,17 @@
 namespace StrongTypes.Tests.MemberNames.Integer
 {
     [StrongType(BaseType.Integer)]
+    public partial record CompareTo { }
+
+    [StrongType(BaseType.Integer)]
     public readonly partial struct JsonConverter { }
 }
 
 namespace StrongTypes.Tests.MemberNames.Guid
 {
+    [StrongType(BaseType.Guid)]
+    public readonly partial record struct CompareTo { }
+
     [StrongType(BaseType.Guid)]
     public readonly partial struct JsonConverter { }
 }
