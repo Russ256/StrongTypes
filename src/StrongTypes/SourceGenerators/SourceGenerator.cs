@@ -10,7 +10,8 @@ internal static class SourceGenerator
             "global::System.Guid" => GuidGenerator.Generate(typeToGenerate),
             "int" => IntegerGenerator.Generate(typeToGenerate),
             "string" => StringGenerator.Generate(typeToGenerate),
-            _ => null,
+            _ => throw new global::System.ArgumentOutOfRangeException(nameof(typeToGenerate),
+                typeToGenerate.BaseTypeName, "Unsupported strong type base type."),
         };
     }
 

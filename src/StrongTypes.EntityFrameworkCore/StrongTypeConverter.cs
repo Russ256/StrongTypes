@@ -27,7 +27,7 @@ public sealed class StrongTypeConverter<TStrong, TValue> : ValueConverter<TStron
     private static Expression<Func<TValue, TStrong>> CreateFromProvider()
     {
         ParameterExpression parameter = Expression.Parameter(typeof(TValue), "value");
-        ConstructorInfo constructor = typeof(TStrong).GetConstructor(new[] { typeof(TValue) })
+        ConstructorInfo constructor = typeof(TStrong).GetConstructor([typeof(TValue)])
             ?? throw new InvalidOperationException($"{typeof(TStrong)} requires a constructor accepting {typeof(TValue)}.");
 
         return Expression.Lambda<Func<TValue, TStrong>>(Expression.New(constructor, parameter), parameter);
