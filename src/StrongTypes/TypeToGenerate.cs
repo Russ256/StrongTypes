@@ -33,6 +33,6 @@ internal struct TypeToGenerate
     internal readonly string Modifiers => DeclarationSyntax.Modifiers.ToString();
     internal readonly string Name => DeclarationSyntax.Identifier.Text;
     internal string Namespace { get; set; }
-    internal int MaxLength { get; set; }
+    internal int? MaxLength { get; set; }
     internal bool IsEmail { get; set; }
 }

@@ -132,6 +132,26 @@ public class Generator : IIncrementalGenerator
             }
 
             object baseType = attribute.ConstructorArguments[0].Value;
+            int? maxLength = attribute.ConstructorArguments.Length > 1
+                ? (int)attribute.ConstructorArguments[1].Value : null;
+            if (maxLength.HasValue)
+            {
+                if (baseType is not (3 or 4))
+                {
+                    ReportDiagnostic(context, "ST0015", "Maximum length is only supported for string and email strong types", location);
+                    continue;
+                }
+                if (maxLength < 0)
+                {
+                    ReportDiagnostic(context, "ST0004", "Maximum length must be non-negative", location);
+                    continue;
+                }
+                if (baseType is 4 && maxLength > 254)
+                {
+                    ReportDiagnostic(context, "ST0016", "Email maximum length must not exceed 254", location);
+                    continue;
+                }
+            }
             if ((baseType is 3 || baseType is 4) && declaration is not ClassDeclarationSyntax)
             {
                 ReportDiagnostic(context, "ST0008", "String and email strong types must be declared as classes, not structs or records", location);
@@ -166,20 +186,12 @@ public class Generator : IIncrementalGenerator
                     break;
                 case 3: // BaseType.String
                     typeToGenerate.BaseTypeName = "string";
-                    if (attribute.ConstructorArguments.Length > 1)
-                    {
-                        typeToGenerate.MaxLength = (int)attribute.ConstructorArguments[1].Value;
-                        if (typeToGenerate.MaxLength < 0)
-                        {
-                            ReportDiagnostic(context, "ST0004", "Maximum length must be non-negative", location);
-                            continue;
-                        }
-                    }
+                    typeToGenerate.MaxLength = maxLength;
                     break;
                 case 4: // BaseType.EmailAddress
                     typeToGenerate.BaseTypeName = "string";
                     typeToGenerate.IsEmail = true;
-                    typeToGenerate.MaxLength = 254;
+                    typeToGenerate.MaxLength = maxLength ?? 254;
                     break;
                 default:
                     ReportDiagnostic(context, "ST0001", "Base type is not supported", location);

@@ -47,6 +47,12 @@ public class DeclarationDiagnosticTests
 
     [TestMethod]
     [DataRow("[StrongType(BaseType.Integer)] public partial struct Id { }", "ST0005")]
+    [DataRow("namespace Example { [StrongType(BaseType.String, -1)] public partial class Id { } }", "ST0004")]
+    [DataRow("namespace Example { [StrongType(BaseType.EmailAddress, -1)] public partial class Id { } }", "ST0004")]
+    [DataRow("namespace Example { [StrongType(BaseType.EmailAddress, 255)] public partial class Id { } }", "ST0016")]
+    [DataRow("namespace Example { [StrongType(BaseType.Integer, 3)] public partial struct Id { } }", "ST0015")]
+    [DataRow("namespace Example { [StrongType(BaseType.Guid, 0)] public partial struct Id { } }", "ST0015")]
+    [DataRow("namespace Example { [StrongType(BaseType.Uri, -1)] public partial class Id { } }", "ST0015")]
     [DataRow("namespace Example { public class Outer { [StrongType(BaseType.Integer)] public partial struct Id { } } }", "ST0006")]
     [DataRow("namespace Example { [StrongType(BaseType.Integer)] public partial struct Id<T> { } }", "ST0007")]
     [DataRow("namespace Example { [StrongType(BaseType.String)] public partial struct Id { } }", "ST0008")]

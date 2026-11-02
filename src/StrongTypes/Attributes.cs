@@ -21,7 +21,7 @@ public class Attributes
                                         }
                                     
                                         internal BaseType BaseType { get; }
-                                        internal int MaxLength { get; }
+                                        internal int? MaxLength { get; }
                                     }
 
                                     internal enum BaseType

@@ -66,7 +66,7 @@ internal static class StringGenerator
 
     private static string GenerateStringLengthValidation(TypeToGenerate typeToGenerate)
     {
-        if (typeToGenerate.MaxLength == 0)
+        if (typeToGenerate.MaxLength is null)
         {
             return "";
         }

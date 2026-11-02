@@ -54,6 +54,15 @@ Compare `.Value` directly when checking unvalidated text without creating a wrap
 
 ## Validation exceptions
 
+String limits are optional: `[StrongType(BaseType.String)]` has no length limit,
+while `[StrongType(BaseType.String, 0)]` permits only the empty string.
+Email types default to a limit of 254; an explicit limit from 0 through 254 is
+honored in addition to email validation. A zero email limit permits no valid values.
+Negative limits produce `ST0004`, email limits above 254 produce `ST0016`, and
+supplying a limit for integer, GUID, or URI types produces `ST0015`.
+Lengths count UTF-16 code units (`string.Length`), so many emoji count as two.
+Constructor calls, implicit conversions, and JSON deserialization enforce the same limits.
+
 Length violations throw `System.ArgumentException` with `ParamName` set to
 `value` and the actual length, maximum length, and type name in the message.
 Invalid emails throw `System.FormatException`; null constructor arguments still
