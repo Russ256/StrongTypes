@@ -118,6 +118,8 @@ internal static class SourceGenerator
                 #nullable enable
 
                 namespace {{typeToGenerate.Namespace}};
+
+                [global::StrongTypes.StrongTypeMetadataAttribute(typeof({{typeToGenerate.BaseTypeName}}))]
                 """;
     }
 

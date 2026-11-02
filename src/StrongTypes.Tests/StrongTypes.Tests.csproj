@@ -16,6 +16,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
     <PackageReference Include="FluentAssertions" Version="[7.1.0]" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.13.1" />
@@ -27,6 +29,7 @@
   <ItemGroup>
     <ProjectReference Include="..\StrongTypes\StrongTypes.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
     <ProjectReference Include="..\StrongTypes.CompilationTests\StrongTypes.CompilationTests.csproj" />
+    <ProjectReference Include="..\StrongTypes.EntityFrameworkCore\StrongTypes.EntityFrameworkCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>
